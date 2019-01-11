@@ -1,5 +1,5 @@
-#ifndef _MY_VECTOR_H_
-#define _MY_VECTOR_H_
+#ifndef _VECTOR_H_
+#define _VECTOR_H_
 
 #include <memory> // unique pointer
 
@@ -70,4 +70,5 @@ private:
 			data[i] = spTemp[i];
 	};
 };
+
 #endif
