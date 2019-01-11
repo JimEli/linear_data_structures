@@ -1,3 +1,5 @@
+#ifndef _ARRAY_H_
+#define _ARRAY_H_
 #include <algorithm>
 
 template<class T, std::size_t N = 16>
