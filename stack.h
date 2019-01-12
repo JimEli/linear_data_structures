@@ -13,6 +13,7 @@ protected:
 	struct node
 	{
 		node(T e) { element = e; }
+
 		T element;
 		std::shared_ptr<node<T>> next = nullptr;
 	};
@@ -44,6 +45,7 @@ public:
 	}
 
 	bool empty() const { return head == nullptr; }
+
 	std::size_t size() const
 	{
 		std::size_t size = 0;
