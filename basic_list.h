@@ -11,6 +11,7 @@ private:
 	struct node
 	{
 		node(T e) { element = e; }
+
 		T element;               // Data.
 		node<T>* next = nullptr; // Link to next node.
 	};
@@ -51,12 +52,15 @@ private:
 	{
 		if (!pNode)
 			return;
+		
 		node<T>* rest = pNode->next;
+		
 		if (!rest)
 		{
 			rest = pNode;
 			return;
 		}
+		
 		rReverse(rest);
 		pNode->next->next = pNode;
 		pNode->next = nullptr;
@@ -84,9 +88,11 @@ public:
 		for (const node<T>* node = head; node; node = node->next, size++);
 		return size;
 	}
+
 	bool empty() const { return head == nullptr; }
 	
 	T& front() const { return head->element; }
+	
 	T& back() const { return tail->element; }
 
 	void push_back(const T& e)
@@ -141,17 +147,21 @@ public:
 	{
 	private:
 		node<T> *pnode = nullptr;
+		
 		// Ctor is private, so only friends can create instances.
 		iterator(node<T> *n) : pnode(n) { }
+		
 		friend class list;
 
 	public:
 		// Overload comparison operators.
 		bool operator== (const iterator& it) const { return pnode == it.pnode; }
 		bool operator!= (const iterator& it) const { return pnode != it.pnode; }
+
 		// Overload dereference and pointer operators.
 		T& operator* () { return pnode->element; }
 		T* operator-> () { return &pnode->element; }
+		
 		// Overload prefix increment operator.
 		iterator& operator++ ()
 		{
