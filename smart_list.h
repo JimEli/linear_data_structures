@@ -12,6 +12,7 @@ private:
 	struct node
 	{
 		node(T e) { element = e; }
+
 		T element;
 		std::shared_ptr<node<T>> next = nullptr;
 	};
@@ -32,14 +33,18 @@ public:
 			pop_front();
 		head.reset(), tail.reset();
 	}
+	
 	std::size_t size() const
 	{ 
 		std::size_t size = 0;
 		for (auto node = head; node; node = node->next, size++);
 		return size;
 	}
+	
 	bool empty() const { return head == nullptr; }
+	
 	T& back() const { return tail->element; }
+	
 	T& front() const { return head->element; }
 
 	void push_back(const T& e) 
@@ -103,13 +108,16 @@ public:
 	{	// Iterative version.
 		if (empty() || !head->next)
 			return;
+
 		std::shared_ptr<node<T>> prev = head;
 		std::shared_ptr<node<T>> current = prev->next;
 		std::shared_ptr<node<T>> next = current->next;
+
 		head = tail;
 		tail = prev;
 		tail->next = nullptr;
 		current->next = std::move(prev);
+
 		while (next)
 		{
 			prev = std::move(current);
@@ -119,4 +127,5 @@ public:
 		}
 	}
 };
+
 #endif
