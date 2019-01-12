@@ -12,6 +12,7 @@ class Vector
 
 public:
 	Vector() : count(0), capacity(0), data(nullptr) { };
+	
 	// Copy ctor.
 	Vector(Vector const &rhs) : count(rhs.count), capacity(rhs.capacity)
 	{
