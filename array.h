@@ -11,6 +11,7 @@ struct array
 	// Iterator support.
 	T* begin() { return elements; }
 	const T* begin() const { return elements; }
+	
 	T* end() { return elements + N; }
 	const T* end() const { return elements + N; }
 
@@ -18,6 +19,7 @@ struct array
 	std::reverse_iterator<T*> rbegin() { return std::reverse_iterator<T*>(end()); }
 	std::reverse_iterator<const T*> rbegin() const { return std::reverse_iterator<const T*>(end()); }
 	std::reverse_iterator<const T*> crbegin() const { return std::reverse_iterator<const T*>(end()); }
+	
 	std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(begin()); }
 	std::reverse_iterator<const T*> rend() const { return std::reverse_iterator<const T*>(begin()); }
 	std::reverse_iterator<const T*> crend() const { return std::reverse_iterator<const T*>(begin()); }
@@ -32,6 +34,7 @@ struct array
 			std::out_of_range("array<>: index out of range");
 		return elements[i];
 	}
+	
 	const T& at(std::size_t i) const 
 	{ 
 		if (i >= size())
@@ -41,12 +44,14 @@ struct array
 
 	T& front() { return elements[0]; }
 	const T& front() const { return elements[0]; }
+	
 	T& back() { return elements[N - 1]; }
 	const T& back() const { return elements[N - 1]; }
 
 	// Size is constant.
 	static std::size_t size() { return N; }
 	static std::size_t max_size() { return N; }
+	
 	static bool empty() { return false; }
 
 	void swap(array<T, N>& a)
@@ -83,6 +88,7 @@ bool operator< (const array<T, N>& x, const array<T, N>& y)
 }
 template<class T, std::size_t N>
 bool operator> (const array<T, N>& x, const array<T, N>& y) { return y<x; }
+
 template<class T, std::size_t N>
 bool operator<= (const array<T, N>& x, const array<T, N>& y) { return !(y<x); }
 template<class T, std::size_t N>
