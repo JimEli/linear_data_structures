@@ -13,6 +13,7 @@ protected:
 	struct Node
 	{
 		Node(T e) { element = e; }
+
 		T element;
 		std::shared_ptr<Node<T>> next = nullptr;
 	};
@@ -21,6 +22,7 @@ public:
 	Queue() : head(nullptr), tail(nullptr), count(0) { }
 
 	T& front() const { return this->head->element; }
+
 	T& back() const
 	{
 		if (empty())
@@ -100,8 +102,10 @@ public:
 	public:
 		bool operator== (const iterator& it) const { return pNode == it.pNode; }
 		bool operator!= (const iterator& it) const { return pNode != it.pNode; }
+	
 		T& operator* () { return pNode->element; }
 		T* operator-> () { return &pNode->element; }
+		
 		iterator& operator++ ()
 		{
 			pNode = pNode->next;
