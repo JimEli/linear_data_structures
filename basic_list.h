@@ -28,16 +28,16 @@ private:
 		do {
 			if (node->element == e)
 			{
-				if (node == head)        // 1st node.
+				if (node == head)         // 1st node.
 				{
 					head = node->next;
-					if (tail == node)    // Only 1 node.
+					if (tail == node) // Only 1 node.
 						tail = nullptr;
 					delete node;
 					return true;
 				}
-				prev->next = node->next; // Interior node.
-				if (node == tail)        // Tail node.
+				prev->next = node->next;  // Interior node.
+				if (node == tail)         // Tail node.
 					tail = prev;
 				delete node;
 				return true;
