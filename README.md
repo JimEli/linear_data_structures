@@ -1,6 +1,6 @@
 # C++ Linear Data Structures
 
-Lean and mean header only include files with minimal commenting.
+Lean and mean header only include files with minimal commenting and no error checking.
 
 * array
 * vector
