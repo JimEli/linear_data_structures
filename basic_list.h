@@ -68,6 +68,8 @@ private:
 	}
 
 public:
+	~list() { clear(); }
+
 	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
 	{
 		for (const node<T> *node = list.head; node; node = node->next)
