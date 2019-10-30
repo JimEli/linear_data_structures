@@ -6,16 +6,17 @@
 template <typename T>
 class list 
 {
-	template <typename T>
 	struct node
 	{
 		node(T e) { element = e; }
 
 		T element;
-		node<T>* next = nullptr;
+		node* next = nullptr;
+		
+		template <typename T> friend class list;
 	};
 
-	node<T>* head = nullptr, *tail = nullptr;
+	node *head = nullptr, *tail = nullptr;
 
 public:
 	~list() { clear(); }
@@ -31,7 +32,7 @@ public:
 	std::size_t size() const
 	{
 		std::size_t size = 0;
-		for (const node<T>* node = head; node; node = node->next, size++);
+		for (const node *node = head; node; node = node->next, size++);
 		return size;
 	}
 
@@ -55,7 +56,7 @@ public:
 
 	void push_back(const T& e)
 	{
-		node<T>* newNode = new node<T>(e);
+		node *newNode = new node(e);
 		
 		if (!head)
 			head = newNode;
@@ -68,7 +69,7 @@ public:
 
 	void push_front(const T& e)
 	{
-		node<T>* newNode = new node<T>(e);
+		node *newNode = new node(e);
 		
 		if (!tail)
 			tail = newNode;
@@ -82,7 +83,7 @@ public:
 		if (empty())
 			return;
 		
-		node<T>* temp = head;
+		node *temp = head;
 		
 		head = head->next;
 		
@@ -92,9 +93,9 @@ public:
 		delete temp;
 	}
 
-	bool find(T d)
+	bool find(T d) const
 	{
-		node<T>* curr = head;
+		node *curr = head;
 		while (curr != nullptr)
 		{
 			if (curr->element == d)
@@ -106,8 +107,8 @@ public:
 
 	bool remove(T d)
 	{
-		node<T>* prev = head;
-		node<T>* curr = head;
+		node *prev = head;
+		node *curr = head;
 
 		while (curr != nullptr)
 		{
@@ -141,8 +142,8 @@ public:
 
 	void reverse()
 	{
-		node<T>* curr = head;
-		node<T> *prev = nullptr, *next = nullptr;
+		node *curr = head;
+		node *prev = nullptr, *next = nullptr;
 
 		while (curr != nullptr)
 		{
@@ -157,7 +158,7 @@ public:
 
 		friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
 	{
-		for (const node<T> *node = list.head; node; node = node->next)
+		for (const node *node = list.head; node; node = node->next)
 			os << node->element;
 		
 		return os << std::endl;
