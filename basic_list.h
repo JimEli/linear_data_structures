@@ -8,17 +8,19 @@ class list
 {
 	struct node
 	{
-		node(T e) { element = e; }
+		explicit node(T e) : next(nullptr) { element = e; }
 
 		T element;
-		node* next = nullptr;
+		node* next;
 		
 		template <typename T> friend class list;
 	};
 
-	node *head = nullptr, *tail = nullptr;
+	node *head, *tail;
 
 public:
+	list() : head(nullptr), tail(nullptr) { }
+	
 	~list() { clear(); }
 
 	void clear()
@@ -142,8 +144,7 @@ public:
 
 	void reverse()
 	{
-		node *curr = head;
-		node *prev = nullptr, *next = nullptr;
+		node *prev = nullptr, *curr = head, *next = nullptr;
 
 		while (curr != nullptr)
 		{
@@ -168,10 +169,10 @@ public:
 	class iterator : public std::iterator<std::forward_iterator_tag, T>
 	{
 	private:
-		node<T> *pnode = nullptr;
+		node *pnode = nullptr;
 
 		// Ctor is private, so only friends can create instances.
-		iterator(node<T> *n) : pnode(n) { }
+		iterator(node *n) : pnode(n) { }
 
 		friend class list;
 
