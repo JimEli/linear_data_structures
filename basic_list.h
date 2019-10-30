@@ -4,9 +4,8 @@
 #include <iostream>  // cout
 
 template <typename T>
-class list
+class list 
 {
-private:
 	template <typename T>
 	struct node
 	{
@@ -17,55 +16,6 @@ private:
 	};
 
 	node<T>* head = nullptr, *tail = nullptr;
-
-	bool removeNode(T e) // Remove first occurrence of element from list.
-	{
-		if (empty())
-			return false;
-
-		node<T> *node = head, *prev = node;
-
-		do {
-			if (node->element == e)
-			{
-				if (node == head)         // 1st node.
-				{
-					head = node->next;
-					if (tail == node) // Only 1 node.
-						tail = nullptr;
-					delete node;
-					return true;
-				}
-				prev->next = node->next;  // Interior node.
-				if (node == tail)         // Tail node.
-					tail = prev;
-				delete node;
-				return true;
-			}
-			prev = node;
-			node = node->next;
-		} while (node);
-		return false;
-	}
-
-	void reverse(node<T>*& pNode) // Recursive version.
-	{
-		if (!pNode)
-			return;
-		
-		node<T>* rest = pNode->next;
-		
-		if (!rest)
-		{
-			rest = pNode;
-			return;
-		}
-		
-		rReverse(rest);
-		pNode->next->next = pNode;
-		pNode->next = nullptr;
-		pNode = rest;
-	}
 
 public:
 	~list() { clear(); }
@@ -92,10 +42,22 @@ public:
 	}
 
 	bool empty() const { return head == nullptr; }
-	
-	T& front() const { return head->element; }
-	
-	T& back() const { return tail->element; }
+
+	T& front() const 
+	{
+		if (!empty())
+			return head->element;
+		else
+			throw std::out_of_range("empty list");
+	}
+
+	T& back() const 
+	{ 
+		if (!empty())
+			return tail->element;
+		else
+			throw std::out_of_range("empty list");
+	}
 
 	void push_back(const T& e)
 	{	// Adds new node to tail of list.
@@ -109,14 +71,14 @@ public:
 
 	void push_front(const T& e)
 	{	// Add node to head of list. 
-		node<T>* newNode = new node<T>(e); 
+		node<T>* newNode = new node<T>(e);
 		if (!tail)
 			tail = newNode;
 		newNode->next = head;
 		head = newNode;
 	}
 
-	void pop_front() 
+	void pop_front()
 	{	// Removes node from head of list.
 		if (empty())
 			return;
@@ -127,32 +89,76 @@ public:
 		delete temp;
 	}
 
-	node<T>* find(const T& e) 
-	{	// Find and return node.
-		if (empty())
-			return nullptr;
-		node<T>* node = head;
-		do {// Walk list looking for node match.
-			if (node->element == e)
-				return node;
-			node = node->next;
-		} while (node);
-		return nullptr; // Failed to find node.
+	bool find(T d)
+	{
+		node<T>* curr = head;
+		while (curr != nullptr)
+		{
+			if (curr->element == d)
+				return true;
+			curr = curr->next;
+		}
+		return false;
 	}
 
-	void remove(T e) { while (removeNode(e)); }
+	bool remove(T d)
+	{
+		node<T>* prev = head;
+		node<T>* curr = head;
 
-	void reverse() { rReverse(head); auto temp = head; head = tail; tail = temp; }
+		while (curr != nullptr)
+		{
+			if (curr->element == d)
+				break;
+			else
+			{
+				prev = curr;
+				curr = curr->next;
+			}
+		}
+
+		if (curr == nullptr)
+			return false;
+		else
+		{
+			if (head == curr)
+				head = curr->next;
+			if (tail == curr)
+				tail = prev;
+			prev->next = curr->next;
+			delete curr;
+		}
+
+		return true;
+	}
+
+	void reverse()
+	{
+		node<T>* curr = head;
+		node<T> *prev = nullptr, *next = nullptr;
+
+		while (curr != nullptr)
+		{
+			next = curr->next;
+
+			curr->next = prev;
+
+			prev = curr;
+			curr = next;
+		}
+		tail = head;
+		head = prev;
+	}
 
 	// Inner iterator class. Member typedefs provided through inheritance from std::iterator.
 	class iterator : public std::iterator<std::forward_iterator_tag, T>
 	{
 	private:
 		node<T> *pnode = nullptr;
-		
+
 		// Ctor is private, so only friends can create instances.
 		iterator(node<T> *n) : pnode(n) { }
-		
+
 		friend class list;
 
 	public:
@@ -163,7 +169,7 @@ public:
 		// Overload dereference and pointer operators.
 		T& operator* () { return pnode->element; }
 		T* operator-> () { return &pnode->element; }
-		
+
 		// Overload prefix increment operator.
 		iterator& operator++ ()
 		{
