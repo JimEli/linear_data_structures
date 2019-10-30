@@ -33,21 +33,33 @@ public:
 			pop_front();
 		head.reset(), tail.reset();
 	}
-	
+
 	std::size_t size() const
-	{ 
+	{
 		std::size_t size = 0;
 		for (auto node = head; node; node = node->next, size++);
 		return size;
 	}
-	
-	bool empty() const { return head == nullptr; }
-	
-	T& back() const { return tail->element; }
-	
-	T& front() const { return head->element; }
 
-	void push_back(const T& e) 
+	bool empty() const { return head == nullptr; }
+
+	T& front() const
+	{
+		if (!empty())
+			return head->element;
+		else
+			throw std::out_of_range("empty list");
+	}
+
+	T& back() const
+	{ 
+		if (!empty())
+			return tail->element;
+		else
+			throw std::out_of_range("empty list");
+	}
+
+	void push_back(const T& e)
 	{	// Add to tail of list. 
 		auto newNode{ std::make_shared<node<T>>(e) };
 		if (!head)
@@ -57,7 +69,7 @@ public:
 		tail = newNode;
 	}
 
-	void push_front(const T& e) 
+	void push_front(const T& e)
 	{	// Add to head of list. 
 		auto newNode{ std::make_shared<node<T>>(e) };
 		if (!tail)
@@ -66,7 +78,7 @@ public:
 		head = newNode;
 	}
 
-	void pop_front() 
+	void pop_front()
 	{	// Remove node from head of list.
 		if (empty())
 			return;
@@ -77,6 +89,17 @@ public:
 		temp.reset();
 	}
 
+	bool find(T d)
+	{
+		auto curr = head;
+		while (curr != nullptr)
+		{
+			if (curr->element == d)
+				return true;
+			curr = curr->next;
+		}
+		return false;
+	}
 	void remove(T e) {
 		if (empty())
 			return;
@@ -104,7 +127,7 @@ public:
 		} while (node);
 	}
 
-	void reverse() 
+	void reverse()
 	{	// Iterative version.
 		if (empty() || !head->next)
 			return;
