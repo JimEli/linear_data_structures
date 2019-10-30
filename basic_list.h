@@ -11,8 +11,8 @@ class list
 	{
 		node(T e) { element = e; }
 
-		T element;               // Data.
-		node<T>* next = nullptr; // Link to next node.
+		T element;
+		node<T>* next = nullptr;
 	};
 
 	node<T>* head = nullptr, *tail = nullptr;
@@ -20,17 +20,11 @@ class list
 public:
 	~list() { clear(); }
 
-	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
-	{
-		for (const node<T> *node = list.head; node; node = node->next)
-			os << node->element;
-		return os << std::endl;
-	}
-
 	void clear()
 	{
 		while (!empty())
 			pop_front();
+
 		head = tail = nullptr;
 	}
 
@@ -60,32 +54,41 @@ public:
 	}
 
 	void push_back(const T& e)
-	{	// Adds new node to tail of list.
+	{
 		node<T>* newNode = new node<T>(e);
+		
 		if (!head)
 			head = newNode;
+		
 		if (tail)
 			tail->next = newNode;
+		
 		tail = newNode;
 	}
 
 	void push_front(const T& e)
-	{	// Add node to head of list. 
+	{
 		node<T>* newNode = new node<T>(e);
+		
 		if (!tail)
 			tail = newNode;
+		
 		newNode->next = head;
 		head = newNode;
 	}
 
 	void pop_front()
-	{	// Removes node from head of list.
+	{
 		if (empty())
 			return;
+		
 		node<T>* temp = head;
+		
 		head = head->next;
+		
 		if (tail == temp)
 			tail = nullptr;
+		
 		delete temp;
 	}
 
@@ -119,13 +122,17 @@ public:
 
 		if (curr == nullptr)
 			return false;
+		
 		else
 		{
 			if (head == curr)
 				head = curr->next;
+		
 			if (tail == curr)
 				tail = prev;
+			
 			prev->next = curr->next;
+			
 			delete curr;
 		}
 
@@ -140,14 +147,20 @@ public:
 		while (curr != nullptr)
 		{
 			next = curr->next;
-
 			curr->next = prev;
-
 			prev = curr;
 			curr = next;
 		}
-		tail = head;
-		head = prev;
+
+		std::swap(head, tail);
+	}
+
+		friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
+	{
+		for (const node<T> *node = list.head; node; node = node->next)
+			os << node->element;
+		
+		return os << std::endl;
 	}
 
 	// Inner iterator class. Member typedefs provided through inheritance from std::iterator.
