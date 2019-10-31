@@ -2,25 +2,25 @@
 #define _BASIC_LIST_H_
 
 #include <iostream>  // cout
+#include <exception> // out_of_range
 
 template <typename T>
-class list 
+class list
 {
 	struct node
 	{
+		template <typename T> friend class list;
+
 		explicit node(T e) : next(nullptr) { element = e; }
 
 		T element;
 		node* next;
-		
-		template <typename T> friend class list;
 	};
 
 	node *head, *tail;
 
 public:
 	list() : head(nullptr), tail(nullptr) { }
-	
 	~list() { clear(); }
 
 	void clear()
@@ -40,7 +40,7 @@ public:
 
 	bool empty() const { return head == nullptr; }
 
-	T& front() const 
+	T& front() const
 	{
 		if (!empty())
 			return head->element;
@@ -48,8 +48,8 @@ public:
 			throw std::out_of_range("empty list");
 	}
 
-	T& back() const 
-	{ 
+	T& back() const
+	{
 		if (!empty())
 			return tail->element;
 		else
@@ -59,23 +59,23 @@ public:
 	void push_back(const T& e)
 	{
 		node *newNode = new node(e);
-		
+
 		if (!head)
 			head = newNode;
-		
+
 		if (tail)
 			tail->next = newNode;
-		
+
 		tail = newNode;
 	}
 
 	void push_front(const T& e)
 	{
 		node *newNode = new node(e);
-		
+
 		if (!tail)
 			tail = newNode;
-		
+
 		newNode->next = head;
 		head = newNode;
 	}
@@ -84,18 +84,18 @@ public:
 	{
 		if (empty())
 			return;
-		
+
 		node *temp = head;
-		
+
 		head = head->next;
-		
+
 		if (tail == temp)
 			tail = nullptr;
-		
+
 		delete temp;
 	}
 
-	bool find(T d) const
+	bool find(const T& d) const
 	{
 		node *curr = head;
 		while (curr != nullptr)
@@ -107,7 +107,7 @@ public:
 		return false;
 	}
 
-	bool remove(T d)
+	bool remove(const T& d)
 	{
 		node *prev = head;
 		node *curr = head;
@@ -125,17 +125,17 @@ public:
 
 		if (curr == nullptr)
 			return false;
-		
+
 		else
 		{
 			if (head == curr)
 				head = curr->next;
-		
+
 			if (tail == curr)
 				tail = prev;
-			
+
 			prev->next = curr->next;
-			
+
 			delete curr;
 		}
 
@@ -157,11 +157,11 @@ public:
 		std::swap(head, tail);
 	}
 
-		friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
+	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
 	{
 		for (const node *node = list.head; node; node = node->next)
 			os << node->element;
-		
+
 		return os << std::endl;
 	}
 
