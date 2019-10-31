@@ -1,43 +1,40 @@
 #ifndef _SMART_LIST_H_
 #define _SMART_LIST_H_
 
-#include <iostream> // cout
-#include <memory>   // smart pointer
+#include <iostream>  // cout
+#include <memory>    // smart pointer
+#include <exception> // out_of_range
 
 template <typename T>
 class list
 {
 private:
-	template <typename T>
 	struct node
 	{
+		template <typename T> friend class list;
+		
 		node(T e) { element = e; }
 
 		T element;
-		std::shared_ptr<node<T>> next = nullptr;
+		std::shared_ptr<node> next = nullptr;
 	};
 
-	std::shared_ptr<node<T>> head = nullptr, tail = nullptr;
+	std::shared_ptr<node> head = nullptr, tail = nullptr;
 
 public:
-	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
-	{
-		for (auto node = list.head; node; node = node->next)
-			os << node->element;
-		return os << std::endl;
-	}
-
 	void clear()
 	{
 		while (!empty())
 			pop_front();
+
 		head.reset(), tail.reset();
 	}
 
 	std::size_t size() const
 	{
 		std::size_t size = 0;
-		for (auto node = head; node; node = node->next, size++);
+		for (auto n = head; n; n = n->next, size++);
+
 		return size;
 	}
 
@@ -60,30 +57,38 @@ public:
 	}
 
 	void push_back(const T& e)
-	{	// Add to tail of list. 
-		auto newNode{ std::make_shared<node<T>>(e) };
+	{
+		auto newNode{ std::make_shared<node>(e) };
+
 		if (!head)
 			head = newNode;
+
 		if (tail)
 			tail->next = newNode;
+		
 		tail = newNode;
 	}
 
 	void push_front(const T& e)
-	{	// Add to head of list. 
-		auto newNode{ std::make_shared<node<T>>(e) };
+	{
+		auto newNode{ std::make_shared<node>(e) };
+
 		if (!tail)
 			tail = newNode;
+		
 		newNode->next = head;
+		
 		head = newNode;
 	}
 
 	void pop_front()
-	{	// Remove node from head of list.
+	{
 		if (empty())
 			return;
+		
 		if (tail == head)
 			tail.reset();
+
 		auto temp = head;
 		head = std::move(head->next);
 		temp.reset();
@@ -91,63 +96,73 @@ public:
 
 	bool find(T d)
 	{
-		auto curr = head;
-		while (curr != nullptr)
+		auto current = head;
+
+		while (current != nullptr)
 		{
-			if (curr->element == d)
+			if (current->element == d)
 				return true;
-			curr = curr->next;
+		
+			current = current->next;
 		}
+
 		return false;
 	}
-	void remove(T e) {
+
+	bool remove(T e) {
 		if (empty())
-			return;
-		auto node{ head }, prev{ node };
-		do {
-			if (node->element == e)
-			{
-				if (node == head)     // 1st node.
-				{
-					head = std::move(node->next);
-					if (tail == node) // Only 1 node.
-						tail.reset();
-					node.reset();
-					return;
-				}
-				// Interior node.
-				prev->next = std::move(node->next);
-				if (node == tail)     // Tail node.
-					tail = prev;
-				node.reset();
-				return;
-			}
-			prev = node;
-			node = node->next;
-		} while (node);
+			return false;
+
+		auto current{ head }, prev{ head };
+
+		while (current)
+		{
+			if (current->element == e)
+				break;
+			prev = current;
+			current = current->next;
+		}
+
+		if (current == nullptr)
+			return false;
+
+		if (head == current)
+			head = current->next;
+
+		if (tail == current)
+			tail = prev;
+
+		prev->next = current->next;
+		current.reset();
+
+		return true;
 	}
 
 	void reverse()
-	{	// Iterative version.
+	{
 		if (empty() || !head->next)
 			return;
 
-		std::shared_ptr<node<T>> prev = head;
-		std::shared_ptr<node<T>> current = prev->next;
-		std::shared_ptr<node<T>> next = current->next;
+		std::shared_ptr<node> prv = nullptr;
+		std::shared_ptr<node> cur = head;
+		std::shared_ptr<node> nxt = nullptr;
 
-		head = tail;
-		tail = prev;
-		tail->next = nullptr;
-		current->next = std::move(prev);
-
-		while (next)
+		while (cur) 
 		{
-			prev = std::move(current);
-			current = std::move(next);
-			next = std::move(current->next);
-			current->next = std::move(prev);
+			nxt = std::move(cur->next);
+			cur->next = std::move(prv);
+			prv = std::move(cur);
+			cur = std::move(nxt);
 		}
+
+		std::swap(head, tail);
+	}
+
+	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
+	{
+		for (auto node = list.head; node; node = node->next)
+			os << node->element;
+		return os << std::endl;
 	}
 };
 
