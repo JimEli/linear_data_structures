@@ -8,18 +8,31 @@
 template <typename T>
 class queue 
 {
+	std::shared_ptr<node> head = nullptr, tail = nullptr;
+
 protected:
-	template <typename T>
-	struct Node
+	struct node
 	{
-		Node(T e) { element = e; }
+		template <typename T> friend class queue;
+		
+		explicit node(T e) { element = e; }
 
 		T element;
-		std::shared_ptr<Node<T>> next = nullptr;
+		std::shared_ptr<node> next = nullptr;
 	};
 
 public:
 	Queue() : head(nullptr), tail(nullptr), count(0) { }
+
+	bool empty() const { return head == nullptr; }
+
+	// Clear the list.
+	void clear()
+	{
+		while (!empty())
+			pop_front();
+		head = tail = nullptr;
+	}
 
 	T& front() const { return this->head->element; }
 
@@ -30,9 +43,10 @@ public:
 		return tail->element;
 	}
 
+	// Adds new node to tail of queue.
 	void enqueue(const T& e)
-	{	// Adds new node to tail of queue.
-		auto newNode{ std::make_shared<Node<T>>(e) };
+	{
+		auto newNode{ std::make_shared<node>(e) };
 		if (head == nullptr) // Update head pointer.
 			head = newNode;
 		if (tail)            // Update tail pointer.
@@ -40,18 +54,20 @@ public:
 		tail = newNode;
 	}
 
+	// Deletes head node.
 	void dequeue()
-	{	// Deletes head node.
+	{
 		if (empty())
 			throw std::out_of_range("queue empty");
-		std::shared_ptr<Node<T>> temp{ head };
+		std::shared_ptr<node> temp{ head };
 		head = head->next;
 		if (tail == temp)
 			tail = nullptr;
 	}
 
+	// Removes node from head of queue.
 	void pop_front()
-	{	// Removes node from head of queue.
+	{
 		if (empty())
 			return;
 		auto temp{ head };
@@ -60,19 +76,10 @@ public:
 			tail = nullptr;
 	}
 
-	void clear()
-	{	// Clear the list.
-		while (!empty())
-			pop_front();
-		head = tail = nullptr;
-	}
-
-	bool empty() const { return head == nullptr; }
-
+	// Adds new node to head of list.
 	void push_front(const T& e)
-	{	// Adds new node to head of list.
-		auto newNode{ std::make_shared<Node<T>>(e) };
-		newNode->element = e;
+	{
+		auto newNode{ std::make_shared<node>(e) };
 		newNode->next = head;
 		head = newNode;
 		if (tail == nullptr)
@@ -91,10 +98,10 @@ public:
 	class iterator : public std::iterator<std::forward_iterator_tag, T>
 	{
 	private:
-		std::shared_ptr<Node<T>> pNode;
+		std::shared_ptr<node> pNode;
 
 		// Ctor is private, so only friends can create instances.
-		iterator(std::shared_ptr<Node<T>> n) : pNode(n) { }
+		iterator(std::shared_ptr<node> n) : pNode(n) { }
 		iterator() : pNode(nullptr) { }
 
 		friend class Queue;
@@ -115,11 +122,7 @@ public:
 	}; // End iterator inner class.
 
 	iterator begin() const { return iterator(head); }
-	//iterator end() const { return iterator(tail); }
-	iterator end() const { return iterator(tail->next); }
-
-private:
-	std::shared_ptr<Node<T>> head = nullptr, tail = nullptr;
+	iterator end() const { return iterator(tail); }
 };
 
 #endif
