@@ -58,7 +58,7 @@ public:
 
 	// Bracketed set/get.
 	T const &operator[] (size_t i) const { return data[i]; };
-	T &operator[] (size_t i) { return data[i]; };
+	T& operator[] (size_t i) { return data[i]; };
 
 private:
 	// Allocates double old space.
