@@ -3,7 +3,7 @@
 
 #include <memory> // unique pointer
 
-template<typename T>
+template <typename T>
 class Vector
 {
 	std::size_t count;         // Number of actually stored objects.
@@ -39,8 +39,9 @@ public:
 		return *this;
 	};
 
+	// Adds new value, and if needed allocates more space.
 	void push_back(T const &d)
-	{	// Adds new value, and if needed allocates more space.
+	{
 		if (capacity == count)
 			resize();
 		data[count++] = d;
@@ -60,8 +61,9 @@ public:
 	T &operator[] (size_t i) { return data[i]; };
 
 private:
+	// Allocates double old space.
 	void resize()
-	{	// Allocates double old space.
+	{
 		capacity = capacity ? capacity*2 : 1;
 
 		std::unique_ptr<T[]> spTemp(static_cast<T*>(data.release()));
