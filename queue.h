@@ -6,23 +6,23 @@
 #include <exception> // exceptions
 
 template <typename T>
-class queue 
+class queue
 {
-	std::shared_ptr<node> head = nullptr, tail = nullptr;
-
 protected:
 	struct node
 	{
 		template <typename T> friend class queue;
-		
+
 		explicit node(T e) { element = e; }
 
 		T element;
 		std::shared_ptr<node> next = nullptr;
 	};
 
+	std::shared_ptr<node> head = nullptr, tail = nullptr;
+
 public:
-	Queue() : head(nullptr), tail(nullptr), count(0) { }
+	queue() : head(nullptr), tail(nullptr) { }
 
 	bool empty() const { return head == nullptr; }
 
@@ -87,9 +87,9 @@ public:
 	}
 
 	// Overloaded output operator to display list contents.
-	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
+	friend std::ostream& operator<< (std::ostream& os, const queue<T>& q)
 	{
-		for (auto node = list.head; node; node = node->next)
+		for (auto node = q.head; node; node = node->next)
 			os << node->element;
 		return os << std::endl;
 	}
@@ -109,10 +109,10 @@ public:
 	public:
 		bool operator== (const iterator& it) const { return pNode == it.pNode; }
 		bool operator!= (const iterator& it) const { return pNode != it.pNode; }
-	
+
 		T& operator* () { return pNode->element; }
 		T* operator-> () { return &pNode->element; }
-		
+
 		iterator& operator++ ()
 		{
 			pNode = pNode->next;
