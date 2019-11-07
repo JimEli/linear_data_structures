@@ -1,6 +1,6 @@
 # C++ Linear Data Structures
 
-Lean and mean header only include files with minimal commenting and no error checking.
+Lean and mean header only include files with minimal commenting and little/no error checking.
 
 * array
 * vector
@@ -8,6 +8,7 @@ Lean and mean header only include files with minimal commenting and no error che
 * singly-linked-list (using smart pointers)
 * stack
 * queue
+* min heap
 * binary heap (priority queue)
 * priority queue
 
@@ -36,6 +37,10 @@ Lean and mean header only include files with minimal commenting and no error che
 * Templated class.
 * Forward iterator support.
 * Methods/operators include: ctor, front, back, enqueue, dequeue, pop_front, push_front, clear, empty, <<.
+
+### Min Heap
+* Templated class.
+* Methods/operators include: ctor, push, pop, top, size, empty.
 
 ### Binary Heap (Priority Queue)
 * Templated class.
