@@ -9,6 +9,7 @@ Lean and mean header only include files with minimal commenting and no error che
 * stack
 * queue
 * binary heap (priority queue)
+* priority queue
 
 ## Basic Feature Descriptions
 
@@ -39,3 +40,7 @@ Lean and mean header only include files with minimal commenting and no error che
 ### Binary Heap (Priority Queue)
 * Templated class.
 * Methods/operators include: ctor, push, pop, top, topKey, topItem, size, empty, <<.
+
+### Priority Queue
+* Templated class.
+* Methods include:
