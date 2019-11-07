@@ -17,7 +17,7 @@ private:
 	std::size_t left(std::size_t i) { return (2 * i + 1); }
 	std::size_t right(std::size_t i) { return (2 * i + 2); }
 
-	void heapify_down(std::size_t i)
+	void heapifyDown(std::size_t i)
 	{
 		std::size_t l = left(i);
 		std::size_t r = right(i);
@@ -32,16 +32,16 @@ private:
 		if (largest != i)
 		{
 			std::swap(heap[i], heap[largest]);
-			heapify_down(largest);
+			heapifyDown(largest);
 		}
 	}
 
-	void heapify_up(std::size_t i)
+	void heapifyUp(std::size_t i)
 	{
 		if (i && heap[parent(i)].first < heap[i].first)
 		{
 			std::swap(heap[i], heap[parent(i)]);
-			heapify_up(parent(i));
+			heapifyUp(parent(i));
 		}
 	}
 
@@ -53,7 +53,7 @@ public:
 	{
 		heap.push_back(p);
 		std::size_t index = size() - 1;
-		heapify_up(index);
+		heapifyUp(index);
 	}
 	
 	void push(std::size_t key, T data) { push(std::make_pair<std::size_t, T>((std::size_t)key, (T)data)); }
@@ -64,7 +64,7 @@ public:
 			throw std::out_of_range("index out of range (Heap underflow)");
 		heap[0] = heap.back();
 		heap.pop_back();
-		heapify_down(0);
+		heapifyDown(0);
 	}
 
 	std::pair<std::size_t, T>& top()
