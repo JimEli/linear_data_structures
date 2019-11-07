@@ -8,6 +8,7 @@ Lean and mean header only include files with minimal commenting and no error che
 * singly-linked-list (using smart pointers)
 * stack
 * queue
+* binary heap (priority queue)
 
 ## Basic Feature Descriptions
 
@@ -35,3 +36,6 @@ Lean and mean header only include files with minimal commenting and no error che
 * Forward iterator support.
 * Methods/operators include: ctor, front, back, enqueue, dequeue, pop_front, push_front, clear, empty, <<.
 
+### Binary Heap (Priority Queue)
+* Templated class.
+* Methods/operators include: ctor, push, pop, top, topKey, topItem, size, empty, <<.
