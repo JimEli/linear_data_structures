@@ -55,6 +55,7 @@ public:
 		std::size_t index = size() - 1;
 		heapify_up(index);
 	}
+	
 	void push(std::size_t key, T data) { push(std::make_pair<std::size_t, T>((std::size_t)key, (T)data)); }
 
 	void pop()
@@ -72,13 +73,15 @@ public:
 			throw std::out_of_range("index out of range (Heap underflow)");
 		return heap.at(0);
 	}
+	
 	std::size_t& topKey()
 	{
 		if (size() == 0)
 			throw std::out_of_range("index out of range (Heap underflow)");
 		return heap.at(0).first;
 	}
-	std::pair<std::size_t, T>& topItem()
+	
+	T& topItem()
 	{
 		if (size() == 0)
 			throw std::out_of_range("index out of range (Heap underflow)");
