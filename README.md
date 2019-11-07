@@ -43,5 +43,5 @@ Lean and mean header only include files with minimal commenting and no error che
 
 ### Priority Queue
 * Templated class.
-* Built ontop of STL heap methods.
+* Built on top of STL vector and heap functions.
 * Methods include: ctor, push, pop, top size, empty, swap.
