@@ -8,9 +8,10 @@ class MinHeap
   T* data;
   std::size_t length;
   std::size_t arraySize;
-  static constexpr std::size_t INITIAL_SIZE = 1;
+  static constexpr std::size_t INIT_SIZE{ 1 };
 
-  void resize(std::size_t newSize) {
+  void resize(std::size_t newSize) 
+  {
     T* newData = new T[newSize];
 
     for (std::size_t i = 0; i < length_; ++i)
@@ -23,14 +24,16 @@ class MinHeap
   }
 
 public:
-  MinHeap() : data(nullptr), length(0), arraySize(INITIAL_SIZE) { data_ = new T[INITIAL_SIZE]; }
+  MinHeap() : data(nullptr), length(0), arraySize(INIT_SIZE) { data_ = new T[INIT_SIZE]; }
   
-  ~MinHeap() {
+  ~MinHeap() 
+  {
     delete[] data;
     data = nullptr;
   }
   
-  void push(const T& element) {
+  void push(const T& element) 
+  {
     std::size_t i;
 
     if (length >= arraySize) 
@@ -52,11 +55,12 @@ public:
     ++length;
   }
 
-  void pop() {
+  void pop() 
+  {
     T element = data[length - 1];
     std::size_t i;
 
-    if (length < arraySize / 2 && arraySize > INITIAL_SIZE) 
+    if (length < arraySize / 2 && arraySize > INIT_SIZE)
       resize(arraySize / 2);
 
     for (i = 0; (i * 2 + 1) < length;) 
@@ -97,6 +101,7 @@ public:
   T& top() { return data[0]; }
 
   bool empty() { return length == 0; }
+  
   std::size_t size() { return length; }
 };
 
