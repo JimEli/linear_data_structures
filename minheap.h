@@ -3,106 +3,106 @@
 #define _MIN_HEAP_H_
 
 template <typename T>
-class MinHeap 
+class MinHeap
 {
-  T* data;
-  std::size_t length;
-  std::size_t arraySize;
-  static constexpr std::size_t INIT_SIZE{ 1 };
+	T* data;
+	std::size_t length;
+	std::size_t arraySize;
+	static constexpr std::size_t INIT_SIZE{ 1 };
 
-  void resize(std::size_t newSize) 
-  {
-    T* newData = new T[newSize];
+	void resize(std::size_t newSize)
+	{
+		T* newData = new T[newSize];
 
-    for (std::size_t i = 0; i < length_; ++i)
-      newData[i] = data_[i];
+		for (std::size_t i = 0; i < length; ++i)
+			newData[i] = data[i];
 
-    delete[] data;
+		delete[] data;
 
-    data = newData;
-    arraySize = newSize;
-  }
+		data = newData;
+		arraySize = newSize;
+	}
 
 public:
-  MinHeap() : data(nullptr), length(0), arraySize(INIT_SIZE) { data_ = new T[INIT_SIZE]; }
-  
-  ~MinHeap() 
-  {
-    delete[] data;
-    data = nullptr;
-  }
-  
-  void push(const T& element) 
-  {
-    std::size_t i;
+	MinHeap() : data(nullptr), length(0), arraySize(INIT_SIZE) { data = new T[INIT_SIZE]; }
 
-    if (length >= arraySize) 
-      resize(arraySize * 2);
+	~MinHeap()
+	{
+		delete[] data;
+		data = nullptr;
+	}
 
-    for (i = length; i > 0;) 
-    {
-      std::size_t parent = (i - 1) / 2;
-      if (element < data[parent]) 
-      {
-        data[i] = data[parent];
-        i = parent;
-      }
-      else 
-        break;
-    }
+	void push(const T& element)
+	{
+		std::size_t i;
 
-    data_[i] = element;
-    ++length;
-  }
+		if (length >= arraySize)
+			resize(arraySize * 2);
 
-  void pop() 
-  {
-    T element = data[length - 1];
-    std::size_t i;
+		for (i = length; i > 0;)
+		{
+			std::size_t parent = (i - 1) / 2;
+			if (element < data[parent])
+			{
+				data[i] = data[parent];
+				i = parent;
+			}
+			else
+				break;
+		}
 
-    if (length < arraySize / 2 && arraySize > INIT_SIZE)
-      resize(arraySize / 2);
+		data[i] = element;
+		++length;
+	}
 
-    for (i = 0; (i * 2 + 1) < length;) 
-    {
-      std::size_t left = i * 2 + 1, right = i * 2 + 2;
+	void pop()
+	{
+		T element = data[length - 1];
+		std::size_t i;
 
-      if (right >= length) 
-      {
-        if (data[left] < element) 
-        {
-          data[i] = data[left];
-          i = left;
-        }
-        break;
-      }
-      else 
-      {
-        std::size_t child = left;
-        
-        if (data[2 * i + 2] < data[2 * i + 1]) 
-          child = right;
+		if (length < arraySize / 2 && arraySize > INIT_SIZE)
+			resize(arraySize / 2);
 
-        if (data[child] < element) 
-        {
-          data[i] = data[child];
-          i = child;
-        }
-        else 
-          break;
-      }
-    }
-    data[i] = element;
+		for (i = 0; (i * 2 + 1) < length;)
+		{
+			std::size_t left = i * 2 + 1, right = i * 2 + 2;
 
-    if (length > 0) 
-      --length;
-  }
+			if (right >= length)
+			{
+				if (data[left] < element)
+				{
+					data[i] = data[left];
+					i = left;
+				}
+				break;
+			}
+			else
+			{
+				std::size_t child = left;
 
-  T& top() { return data[0]; }
+				if (data[2 * i + 2] < data[2 * i + 1])
+					child = right;
 
-  bool empty() { return length == 0; }
-  
-  std::size_t size() { return length; }
+				if (data[child] < element)
+				{
+					data[i] = data[child];
+					i = child;
+				}
+				else
+					break;
+			}
+		}
+		data[i] = element;
+
+		if (length > 0)
+			--length;
+	}
+
+	T& top() { return data[0]; }
+
+	bool empty() { return length == 0; }
+
+	std::size_t size() { return length; }
 };
 
 #endif
