@@ -1,5 +1,6 @@
 #ifndef _ARRAY_H_
 #define _ARRAY_H_
+
 #include <algorithm>
 
 template<class T, std::size_t N = 16>
@@ -78,6 +79,7 @@ bool operator== (const array<T, N>& x, const array<T, N>& y)
 {
 	return std::equal(x.begin(), x.end(), y.begin());
 }
+
 template<class T, std::size_t N>
 bool operator!= (const array<T, N>& x, const array<T, N>& y) { return !(x == y); }
 
@@ -86,11 +88,13 @@ bool operator< (const array<T, N>& x, const array<T, N>& y)
 {
 	return std::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
+
 template<class T, std::size_t N>
 bool operator> (const array<T, N>& x, const array<T, N>& y) { return y<x; }
 
 template<class T, std::size_t N>
 bool operator<= (const array<T, N>& x, const array<T, N>& y) { return !(y<x); }
+
 template<class T, std::size_t N>
 bool operator>= (const array<T, N>& x, const array<T, N>& y) { return !(x<y); }
 
