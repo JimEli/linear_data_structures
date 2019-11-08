@@ -45,8 +45,15 @@ private:
 		}
 	}
 
+	void checkEmpty()
+	{
+		if (size() == 0)
+			throw std::out_of_range("index out of range (Heap underflow)");
+	}
+
 public:
 	std::size_t size() { return heap.size(); }
+	
 	bool empty() { return heap.size() == 0; }
 
 	void push(std::pair<std::size_t, T> p)
@@ -60,31 +67,28 @@ public:
 
 	void pop()
 	{
-		if (size() == 0)
-			throw std::out_of_range("index out of range (Heap underflow)");
+		checkEmpty();
 		heap[0] = heap.back();
 		heap.pop_back();
 		heapifyDown(0);
 	}
 
+	
 	std::pair<std::size_t, T>& top()
 	{
-		if (size() == 0)
-			throw std::out_of_range("index out of range (Heap underflow)");
+		checkEmpty();
 		return heap.at(0);
 	}
 	
 	std::size_t& topKey()
 	{
-		if (size() == 0)
-			throw std::out_of_range("index out of range (Heap underflow)");
+		checkEmpty();
 		return heap.at(0).first;
 	}
 	
 	T& topItem()
 	{
-		if (size() == 0)
-			throw std::out_of_range("index out of range (Heap underflow)");
+		checkEmpty();
 		return heap.at(0).second;
 	}
 
