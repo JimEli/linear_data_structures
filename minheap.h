@@ -7,7 +7,7 @@ class MinHeap
 {
 	T* data;
 	std::size_t length;
-	std::size_t arraySize;
+	std::size_t capacity;
 	static constexpr std::size_t INIT_SIZE{ 1 };
 
 	void resize(std::size_t newSize)
@@ -20,11 +20,11 @@ class MinHeap
 		delete[] data;
 
 		data = newData;
-		arraySize = newSize;
+		capacity = newSize;
 	}
 
 public:
-	MinHeap() : data(nullptr), length(0), arraySize(INIT_SIZE) { data = new T[INIT_SIZE]; }
+	MinHeap() : data(nullptr), length(0), capacity(INIT_SIZE) { data = new T[INIT_SIZE]; }
 
 	~MinHeap()
 	{
@@ -36,8 +36,8 @@ public:
 	{
 		std::size_t i;
 
-		if (length >= arraySize)
-			resize(arraySize * 2);
+		if (length >= capacity)
+			resize(capacity * 2);
 
 		for (i = length; i > 0;)
 		{
@@ -60,12 +60,13 @@ public:
 		T element = data[length - 1];
 		std::size_t i;
 
-		if (length < arraySize / 2 && arraySize > INIT_SIZE)
-			resize(arraySize / 2);
+		if (length < capacity / 2 && capacity > INIT_SIZE)
+			resize(capacity / 2);
 
 		for (i = 0; (i * 2 + 1) < length;)
 		{
-			std::size_t left = i * 2 + 1, right = i * 2 + 2;
+			std::size_t left = i * 2 + 1;
+			std::size_t right = i * 2 + 2;
 
 			if (right >= length)
 			{
@@ -92,6 +93,7 @@ public:
 					break;
 			}
 		}
+
 		data[i] = element;
 
 		if (length > 0)
