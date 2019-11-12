@@ -1,9 +1,9 @@
 #ifndef _VECTOR_H_
 #define _VECTOR_H_
 
-#include <memory>      // unique pointer
-#include <algorithm>   // min
-#include <limits>      // numeric_limits
+#include <memory>    // unique pointer
+#include <algorithm> // min
+#include <limits>    // numeric_limits
 
 template <typename T>
 class vector
@@ -27,15 +27,21 @@ public:
 	typename vector<T>::const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(elements.get() + count); }
 	typename vector<T>::const_reverse_iterator crend() const noexcept { return const_reverse_iterator(elements.get()); }
 
+	template<typename T> friend bool operator== (const vector<T>& lhs, const vector<T>& rhs);
+	template<typename T> friend bool operator!= (const vector<T>& lhs, const vector<T>& rhs);
+	template<typename T> friend bool operator< (const vector<T>& lhs, const vector<T>& rhs);
+	template<typename T> friend bool operator<= (const vector<T>& lhs, const vector<T>& rhs);
+	template<typename T> friend bool operator> (const vector<T>& lhs, const vector<T>& rhs);
+	template<typename T> friend bool operator>= (const vector<T>& lhs, const vector<T>& rhs);
+	template<typename T> friend void swap(vector<T>& lhs, vector<T>& rhs);
+
 	vector() : count(0), reservedSize(0), elements(nullptr) { }
 
 	// Copy ctor.
 	vector(vector const &rhs) : count(rhs.count), reservedSize(rhs.reservedSize)
 	{
 		std::unique_ptr<T[]> elements = std::make_unique<T[]>(reservedSize);
-
-		for (std::size_t i = 0; i < count; i++)
-			elements[i] = rhs.elements[i];
+		std::copy(rhs.elements.get(), (rhs.elements.get() + count), elements.get());
 	}
 
 	// Move ctor.
@@ -78,17 +84,14 @@ public:
 		count--;
 	}
 
-	size_t size() const { return count; }
-	bool empty() const { return count == 0; }
-
 	T const &operator[] (size_t i) const { return elements[i]; }
 	T& operator[] (size_t i) { return elements[i]; }
 
 	T const & at(size_t i) const { return elements[i]; }
 	T& at(size_t i) { return elements[i]; }
 
-	T* data() { return elements.get(); }
-	const T* data() const { return elements; }
+	T* data() noexcept { return elements.get(); }
+	const T* data() const noexcept { return elements; }
 
 	T& front() const { return elements[0]; }
 	T& back() const { return elements[count - 1]; }
@@ -101,7 +104,7 @@ public:
 		if (reservedSize == count)
 			resize();
 
-		std::copy(&elements[i], (elements.get() + count), &elements[i + 1]);
+		std::copy((elements.get() + i), (elements.get() + count), (elements.get() + i + 1));
 		elements[i] = d;
 		count++;
 	}
@@ -116,7 +119,7 @@ public:
 		if (reservedSize == count)
 			resize();
 
-		std::copy(&elements[i], (elements.get() + count), &elements[i + 1]);
+		std::copy((elements.get() + i), (elements.get() + count), (elements.get() + i + 1));
 		elements[i] = d;
 		count++;
 	}
@@ -127,7 +130,7 @@ public:
 			return;
 
 		--count;
-		std::copy(&elements[pos + 1], (elements.get() + count), &elements[pos]);
+		std::copy((elements.get() + pos + 1), (elements.get() + count), (elements.get() + pos));
 	}
 
 	void erase(iterator it)
@@ -138,7 +141,7 @@ public:
 			return;
 
 		--count;
-		std::copy(&elements[pos + 1], (elements.get() + count), &elements[pos]);
+		std::copy((elements.get() + pos + 1), (elements.get() + count), (elements.get() + pos));
 	}
 
 	void assign(size_t n, const T& d)
@@ -149,22 +152,23 @@ public:
 
 	void swap(vector<T>& rhs)
 	{
-		using std::swap;
-
-		swap(count, rhs.count);
-		swap(reservedSize, rhs.reservedSize);
-		swap(elements, rhs.elements);
+		std::swap(count, rhs.count);
+		std::swap(reservedSize, rhs.reservedSize);
+		std::swap(elements, rhs.elements);
 	}
 
+	size_t size() const noexcept { return count; }
+	bool empty() const noexcept { return count == 0; }
 	size_t max_size() const noexcept { return std::numeric_limits<size_t>::max(); }
 	size_t capacity() const noexcept { return reservedSize; }
-	void reserve(size_t n)
+
+	void reserve(size_t n) 
 	{
 		std::unique_ptr<T[]> newElements(static_cast<T*>(elements.release()));
 		elements.reset(new T[reservedSize]);
 
 		count = std::min(n, count);
-		std::copy(elements.get(), &elements[count], newElements.get());
+		std::copy(elements.get(), (elements.get() + count), newElements.get());
 		reservedSize = n;
 		elements = std::move(newElements);
 
@@ -178,11 +182,62 @@ private:
 	{
 		reservedSize = reservedSize ? reservedSize * 2 : 1;
 
-		std::unique_ptr<T[]> spTemp(static_cast<T*>(elements.release()));
+		std::unique_ptr<T[]> temp(static_cast<T*>(elements.release()));
 		elements.reset(new T[reservedSize]);
-
-		std::copy(spTemp.get(), &spTemp[count], elements.get());
+		std::copy(temp.get(), (temp.get() + count), elements.get());
 	}
 };
+
+template <typename T>
+bool operator== (const vector<T>& lhs, const vector<T>& rhs)
+{
+	if (lhs.count != rhs.count)
+		return false;
+
+	for (size_t i = 0; i < lhs.count; i++)
+		if (lhs[i] != rhs[i])
+			return false;
+
+	return true;
+}
+
+template<typename T>
+bool operator!= (const vector<T>& lhs, const vector<T>& rhs)
+{
+	return !(lhs == rhs);
+}
+
+template<typename T>
+bool operator< (const vector<T>& lhs, const vector<T>& rhs)
+{
+	typename vector<T>::size_type n = (lhs.count < rhs.count) ? lhs.count : rhs.count;
+	
+	for (size_t i = 0; i < n; i++)
+		if (lhs[i] != rhs[i])
+			return lhs[i] < rhs[i];
+	
+	return lhs.count < rhs.count;
+}
+
+template<typename T>
+bool operator> (const vector<T>& lhs, const vector<T>& rhs)
+{
+	typename vector<T>::size_type n = lhs.count < rhs.count ? lhs.count : rhs.count;
+
+	for (size_t i = 0; i < n; i++)
+		if (lhs[i] != rhs[i])
+			return lhs[i] > rhs[i];
+
+	return lhs.count > rhs.count;
+}
+
+template<typename T>
+bool operator<= (const vector<T>& lhs, const vector<T>& rhs) { return !(lhs > rhs); }
+
+template<typename T>
+bool operator>= (const vector<T>& lhs, const vector<T>& rhs) { return !(lhs < rhs); }
+
+template<typename T>
+void swap(vector<T>& lhs, vector<T>& rhs) { lhs.swap(rhs); }
 
 #endif
