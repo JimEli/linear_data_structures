@@ -1,8 +1,9 @@
 #ifndef _VECTOR_H_
 #define _VECTOR_H_
 
-#include <memory>    // unique pointer
-#include <algorithm> // min
+#include <memory>      // unique pointer
+#include <algorithm>   // min
+#include <limits>      // numeric_limits
 
 template <typename T>
 class vector
