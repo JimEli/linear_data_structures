@@ -27,13 +27,13 @@ public:
 	typename vector<T>::const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(elements.get() + count); }
 	typename vector<T>::const_reverse_iterator crend() const noexcept { return const_reverse_iterator(elements.get()); }
 
-	template<typename T> friend bool operator== (const vector<T>& lhs, const vector<T>& rhs);
-	template<typename T> friend bool operator!= (const vector<T>& lhs, const vector<T>& rhs);
-	template<typename T> friend bool operator< (const vector<T>& lhs, const vector<T>& rhs);
-	template<typename T> friend bool operator<= (const vector<T>& lhs, const vector<T>& rhs);
-	template<typename T> friend bool operator> (const vector<T>& lhs, const vector<T>& rhs);
-	template<typename T> friend bool operator>= (const vector<T>& lhs, const vector<T>& rhs);
-	template<typename T> friend void swap(vector<T>& lhs, vector<T>& rhs);
+	template<typename T> friend bool operator== (const vector<T>&, const vector<T>&);
+	template<typename T> friend bool operator!= (const vector<T>&, const vector<T>&);
+	template<typename T> friend bool operator< (const vector<T>&, const vector<T>&);
+	template<typename T> friend bool operator<= (const vector<T>&, const vector<T>&);
+	template<typename T> friend bool operator> (const vector<T>&, const vector<T>&);
+	template<typename T> friend bool operator>= (const vector<T>&, const vector<T>&);
+	template<typename T> friend void swap(vector<T>&, vector<T>&);
 
 	vector() : count(0), reservedSize(0), elements(nullptr) { }
 
