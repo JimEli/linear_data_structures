@@ -98,13 +98,13 @@ public:
 
 	void insert(size_t i, T& d)
 	{
-		if (i < 0 || i > count - 1)
+		if (i > count)
 			return;
 
 		if (reservedSize == count)
 			resize();
 
-		std::copy((elements.get() + i), (elements.get() + count), (elements.get() + i + 1));
+		std::copy((begin() + i), end(), (begin() + i + 1));
 		elements[i] = d;
 		count++;
 	}
@@ -113,13 +113,13 @@ public:
 	{
 		size_t i = it - begin();
 
-		if (i < 0 || i > count - 1)
+		if (i > count)
 			return;
 
 		if (reservedSize == count)
 			resize();
 
-		std::copy((elements.get() + i), (elements.get() + count), (elements.get() + i + 1));
+		std::copy((begin() + i), end(), (begin() + i + 1));
 		elements[i] = d;
 		count++;
 	}
@@ -129,8 +129,9 @@ public:
 		if (pos < 0 || pos >= count)
 			return;
 
+		if (pos != size())
+			std::copy((begin() + pos + 1), end(), (begin() + pos));
 		--count;
-		std::copy((elements.get() + pos + 1), (elements.get() + count), (elements.get() + pos));
 	}
 
 	void erase(iterator it)
@@ -140,8 +141,9 @@ public:
 		if (pos < 0 || pos >= count)
 			return;
 
+		if (pos != size())
+			std::copy((begin() + pos + 1), end(), (begin() + pos));
 		--count;
-		std::copy((elements.get() + pos + 1), (elements.get() + count), (elements.get() + pos));
 	}
 
 	void assign(size_t n, const T& d)
