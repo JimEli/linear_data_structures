@@ -19,13 +19,13 @@ public:
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	typename vector<T>::iterator begin() noexcept { return elements.get(); }
-	typename vector<T>::iterator end() noexcept { return iterator(elements.get() + count); }
+	typename vector<T>::iterator end() noexcept { return iterator(begin() + count); }
 	typename vector<T>::const_iterator cbegin() const noexcept { return begin(); }
 	typename vector<T>::const_iterator cend() const noexcept { return end(); }
-	typename vector<T>::reverse_iterator rbegin() noexcept { return reverse_iterator(elements.get() + count); }
-	typename vector<T>::reverse_iterator rend() noexcept { return reverse_iterator(elements.get()); }
-	typename vector<T>::const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(elements.get() + count); }
-	typename vector<T>::const_reverse_iterator crend() const noexcept { return const_reverse_iterator(elements.get()); }
+	typename vector<T>::reverse_iterator rbegin() noexcept { return reverse_iterator(begin() + count); }
+	typename vector<T>::reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+	typename vector<T>::const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(begin() + count); }
+	typename vector<T>::const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
 
 	template<typename T> friend bool operator== (const vector<T>&, const vector<T>&);
 	template<typename T> friend bool operator!= (const vector<T>&, const vector<T>&);
@@ -41,7 +41,7 @@ public:
 	vector(vector const &rhs) : count(rhs.count), reservedSize(rhs.reservedSize)
 	{
 		std::unique_ptr<T[]> elements = std::make_unique<T[]>(reservedSize);
-		std::copy(rhs.elements.get(), (rhs.elements.get() + count), elements.get());
+		std::copy(rhs.begin(), (rhs.begin() + count), begin());
 	}
 
 	// Move ctor.
@@ -96,20 +96,7 @@ public:
 	T& front() const { return elements[0]; }
 	T& back() const { return elements[count - 1]; }
 
-	void insert(size_t i, T& d)
-	{
-		if (i > count)
-			return;
-
-		if (reservedSize == count)
-			resize();
-
-		std::copy((begin() + i), end(), (begin() + i + 1));
-		elements[i] = d;
-		count++;
-	}
-
-	void insert(iterator it, const T& d)
+	void insert(const iterator it, const T& d)
 	{
 		size_t i = it - begin();
 
@@ -124,29 +111,19 @@ public:
 		count++;
 	}
 
-	void erase(size_t pos)
-	{
-		if (pos < 0 || pos >= count)
-			return;
-
-		if (pos != size())
-			std::copy((begin() + pos + 1), end(), (begin() + pos));
-		--count;
-	}
-
-	void erase(iterator it)
+	void erase(const iterator it)
 	{
 		size_t pos = it - begin();
 
-		if (pos < 0 || pos >= count)
+		if (pos >= count)
 			return;
 
-		if (pos != size())
+		if (pos != count - 1)
 			std::copy((begin() + pos + 1), end(), (begin() + pos));
 		--count;
 	}
 
-	void assign(size_t n, const T& d)
+	void assign(const size_t n, const T& d)
 	{
 		for (size_t i = 0; i < n; i++)
 			push_back(d);
@@ -170,10 +147,9 @@ public:
 		elements.reset(new T[reservedSize]);
 
 		count = std::min(n, count);
-		std::copy(elements.get(), (elements.get() + count), newElements.get());
+		//std::copy(begin(), (begin() + count), newElements.get());
 		reservedSize = n;
 		elements = std::move(newElements);
-
 	}
 	void resize(size_t n) { reserve(n); }
 	void shrink_to_fit() { reserve(count); }
