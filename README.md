@@ -22,7 +22,8 @@ A collection of lean and mean header only include files with minimal commenting 
 
 ### Vector
 * Templated class.
-* Methods/operators include: ctor, copy ctor, clear, =,  push_back, pop_back, size, and [].
+* Forward and reverse iterator support.
+* Methods/operators include: ctor, copy and move ctor, clear, =, push_back, pop_back, front, back, size, max_size, capacity, reserve, resize, shrink_to_fit, [], at, data, insert, erase, assign, swap.
 
 ### Singly-Linked List
 * Templated class.
