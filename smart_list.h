@@ -1,3 +1,5 @@
+// Basic singly-linked list using shared_ptr with iterator.
+// 11.22.2019 JME
 #ifndef _SMART_LIST_H_
 #define _SMART_LIST_H_
 
@@ -12,9 +14,8 @@ private:
 	struct node
 	{
 		template <typename T> friend class list;
-
 		node(T e) { element = e; }
-		
+
 	protected:
 		T element;
 		std::shared_ptr<node> next = nullptr;
@@ -34,6 +35,9 @@ public:
 
 		friend class list;
 
+		const std::shared_ptr<node> getNext() const { return pnode->next; }
+		void setNext(const std::shared_ptr<node> n) const { pnode->next = n; }
+
 	public:
 		bool operator== (const iterator& it) const { return pnode == it.pnode; }
 		bool operator!= (const iterator& it) const { return pnode != it.pnode; }
@@ -46,7 +50,6 @@ public:
 			pnode = pnode->next;
 			return iterator(pnode);
 		}
-
 		iterator operator++ (int)
 		{
 			auto temp = pnode;
@@ -62,8 +65,15 @@ public:
 		}
 	}; 
 
-	list<T>::iterator begin() const { return iterator(head); }
-	list<T>::iterator end() const { return iterator(tail->next); }
+	iterator begin() const { return iterator(head); }
+	iterator end() const { return iterator(tail->next); }
+
+	iterator before_begin() const 
+	{
+		auto proNode{ std::make_shared<node>(T{0}) };
+		proNode->next = head;
+		return iterator(proNode); 
+	}
 
 	void clear()
 	{
@@ -150,6 +160,42 @@ public:
 		}
 
 		return false;
+	}
+
+	iterator insert_after(iterator it, const T& e) noexcept
+	{
+		auto newNode{ std::make_shared<node>(e) };
+		newNode->next = it.getNext();
+
+		if (it.getNext() == head)
+			head = newNode;
+		else
+			it.setNext(newNode);
+
+		if (it == tail)
+			tail = newNode;
+
+		return iterator(newNode);
+	}
+
+	iterator erase_after(iterator it)
+	{
+		if (it == tail)
+			return it;
+
+		auto tmp = it.getNext();
+
+		if (it.getNext() == head)
+			head = it.getNext()->next;
+		else
+			it.setNext(tmp->next);
+		
+		if (it.getNext() == tail)
+			tail = it.pnode;
+
+		tmp.reset();
+
+		return it;
 	}
 
 	bool remove(T e) 
