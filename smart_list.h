@@ -12,9 +12,10 @@ private:
 	struct node
 	{
 		template <typename T> friend class list;
-		
-		node(T e) { element = e; }
 
+		node(T e) { element = e; }
+		
+	protected:
 		T element;
 		std::shared_ptr<node> next = nullptr;
 	};
@@ -22,6 +23,48 @@ private:
 	std::shared_ptr<node> head = nullptr, tail = nullptr;
 
 public:
+	// Inner iterator class. Member typedefs provided through inherit from std::iterator.
+	class iterator : public std::iterator<std::forward_iterator_tag, T>
+	{
+	private:
+		std::shared_ptr<node> pnode = nullptr;
+
+		// Ctor is private, so only friends can create instances.
+		iterator(std::shared_ptr<node> n) : pnode(n) { }
+
+		friend class list;
+
+	public:
+		bool operator== (const iterator& it) const { return pnode == it.pnode; }
+		bool operator!= (const iterator& it) const { return pnode != it.pnode; }
+
+		T& operator* () { return pnode->element; }
+		T* operator-> () { return &pnode->element; }
+
+		iterator operator++ ()
+		{
+			pnode = pnode->next;
+			return iterator(pnode);
+		}
+
+		iterator operator++ (int)
+		{
+			auto temp = pnode;
+			pnode = pnode->next;
+			return iterator(temp);
+		}
+
+		iterator operator+ (int i)
+		{
+			while(i-- && pnode != nullptr)
+				pnode = pnode->next;
+			return iterator(pnode);
+		}
+	}; 
+
+	list<T>::iterator begin() const { return iterator(head); }
+	list<T>::iterator end() const { return iterator(tail->next); }
+
 	void clear()
 	{
 		while (!empty())
@@ -49,7 +92,7 @@ public:
 	}
 
 	T& back() const
-	{ 
+	{
 		if (!empty())
 			return tail->element;
 		else
@@ -65,7 +108,7 @@ public:
 
 		if (tail)
 			tail->next = newNode;
-		
+
 		tail = newNode;
 	}
 
@@ -75,9 +118,9 @@ public:
 
 		if (!tail)
 			tail = newNode;
-		
+
 		newNode->next = head;
-		
+
 		head = newNode;
 	}
 
@@ -85,7 +128,7 @@ public:
 	{
 		if (empty())
 			return;
-		
+
 		if (tail == head)
 			tail.reset();
 
@@ -102,14 +145,15 @@ public:
 		{
 			if (current->element == d)
 				return true;
-		
+
 			current = current->next;
 		}
 
 		return false;
 	}
 
-	bool remove(T e) {
+	bool remove(T e) 
+	{
 		if (empty())
 			return false;
 
@@ -147,7 +191,7 @@ public:
 		std::shared_ptr<node> cur = head;
 		std::shared_ptr<node> nxt = nullptr;
 
-		while (cur) 
+		while (cur)
 		{
 			nxt = std::move(cur->next);
 			cur->next = std::move(prv);
@@ -160,8 +204,8 @@ public:
 
 	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
 	{
-		for (auto node = list.head; node; node = node->next)
-			os << node->element;
+		for (const auto e : list)
+			os << e;
 		return os << std::endl;
 	}
 };
