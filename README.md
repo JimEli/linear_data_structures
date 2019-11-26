@@ -28,7 +28,7 @@ A collection of lean and mean header only include files with minimal commenting 
 ### Singly-Linked List
 * Templated class.
 * Forward iterator support.
-* Methods/operators include: <<, clear, size, empty, front, back, push_back, push_front, pop_front, find, remove and reverse.
+* Methods/operators include: <<, clear, size, empty, front, back, push_back, push_front, pop_front, find, remove and reverse (smart pointer version includes resize, insert_after, emplace_front, emplace_back and erase_after).
 
 ### Stack
 * Templated class.
