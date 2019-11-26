@@ -1,5 +1,4 @@
 // Basic singly-linked list using shared_ptr with iterator.
-// 11.22.2019 JME
 #ifndef _SMART_LIST_H_
 #define _SMART_LIST_H_
 
@@ -10,12 +9,15 @@
 template <typename T>
 class list
 {
+	struct node;
+	class iterator;
+
 private:
 	struct node
 	{
 		template <typename T> friend class list;
-		node(T e) { element = e; }
-
+		node(T e) : element(e) { }
+		node(std::shared_ptr<node> n) { next = n; }
 	protected:
 		T element;
 		std::shared_ptr<node> next = nullptr;
@@ -32,7 +34,7 @@ public:
 
 		// Ctor is private, so only friends can create instances.
 		iterator(std::shared_ptr<node> n) : pnode(n) { }
-
+		iterator() {};
 		friend class list;
 
 		const std::shared_ptr<node> getNext() const { return pnode->next; }
@@ -42,8 +44,8 @@ public:
 		bool operator== (const iterator& it) const { return pnode == it.pnode; }
 		bool operator!= (const iterator& it) const { return pnode != it.pnode; }
 
-		T& operator* () { return pnode->element; }
-		T* operator-> () { return &pnode->element; }
+		T& operator* () const { return pnode->element; }
+		T* operator-> () const { return &pnode->element; }
 
 		iterator operator++ ()
 		{
@@ -53,7 +55,7 @@ public:
 		iterator operator++ (int)
 		{
 			auto temp = pnode;
-			pnode = pnode->next;
+			++*this;
 			return iterator(temp);
 		}
 
@@ -70,9 +72,8 @@ public:
 
 	iterator before_begin() const 
 	{
-		auto proNode{ std::make_shared<node>(T{0}) };
-		proNode->next = head;
-		return iterator(proNode); 
+		auto proNode = std::make_shared<node>(head);
+		return iterator(proNode);
 	}
 
 	void clear()
@@ -80,7 +81,8 @@ public:
 		while (!empty())
 			pop_front();
 
-		head.reset(), tail.reset();
+		head = tail = nullptr;
+		// head.reset(), tail.reset();
 	}
 
 	std::size_t size() const
@@ -248,6 +250,20 @@ public:
 		std::swap(head, tail);
 	}
 
+	void resize(size_t n)
+	{
+		if (n >= size())
+			return;
+
+		if (n >= 1)
+		{
+			tail = (begin() + (n - 1)).pnode;
+			tail->next = nullptr;
+		}
+		else
+			clear();
+	}
+
 	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
 	{
 		for (const auto e : list)
@@ -255,5 +271,4 @@ public:
 		return os << std::endl;
 	}
 };
-
 #endif
