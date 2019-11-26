@@ -121,9 +121,36 @@ public:
 		tail = newNode;
 	}
 
+	template<typename ...Args>
+	void emplace_back(Args&&... args)
+	{
+		auto newNode = std::make_shared<node>(std::forward<Args>(args)...);
+
+		if (!head)
+			head = newNode;
+
+		if (tail)
+			tail->next = newNode;
+
+		tail = newNode;
+	}
+
 	void push_front(const T& e)
 	{
 		auto newNode{ std::make_shared<node>(e) };
+
+		if (!tail)
+			tail = newNode;
+
+		newNode->next = head;
+
+		head = newNode;
+	}
+
+	template<typename ...Args>
+	void emplace_front(Args&&... args)
+	{
+		auto newNode = std::make_shared<node>(std::forward<Args>(args)...);
 
 		if (!tail)
 			tail = newNode;
