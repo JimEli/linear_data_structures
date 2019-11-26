@@ -9,9 +9,6 @@
 template <typename T>
 class list
 {
-	struct node;
-	class iterator;
-
 private:
 	struct node
 	{
