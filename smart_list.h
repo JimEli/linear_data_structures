@@ -1,4 +1,3 @@
-// Basic singly-linked list using shared_ptr with iterator.
 #ifndef _SMART_LIST_H_
 #define _SMART_LIST_H_
 
@@ -15,6 +14,8 @@ private:
 		template <typename T> friend class list;
 		node(T e) : element(e) { }
 		node(std::shared_ptr<node> n) { next = n; }
+		~node() { ~T(); next = nullptr; }
+
 	protected:
 		T element;
 		std::shared_ptr<node> next = nullptr;
@@ -27,15 +28,17 @@ public:
 	class iterator : public std::iterator<std::forward_iterator_tag, T>
 	{
 	private:
+		friend class list;
+
 		std::shared_ptr<node> pnode = nullptr;
 
 		// Ctor is private, so only friends can create instances.
+		iterator() { };
 		iterator(std::shared_ptr<node> n) : pnode(n) { }
-		iterator() {};
-		friend class list;
 
+		// These setter/getters are used by insert_after and erase_after.
 		const std::shared_ptr<node> getNext() const { return pnode->next; }
-		void setNext(const std::shared_ptr<node> n) const { pnode->next = n; }
+		void setNext(const std::shared_ptr<node> n) { pnode->next = n; }
 
 	public:
 		bool operator== (const iterator& it) const { return pnode == it.pnode; }
@@ -52,22 +55,22 @@ public:
 		iterator operator++ (int)
 		{
 			auto temp = pnode;
-			++*this;
+			++* this;
 			return iterator(temp);
 		}
 
 		iterator operator+ (int i)
 		{
-			while(i-- && pnode != nullptr)
+			while (i-- && pnode != nullptr)
 				pnode = pnode->next;
 			return iterator(pnode);
 		}
-	}; 
+	};
 
 	iterator begin() const { return iterator(head); }
 	iterator end() const { return iterator(tail->next); }
 
-	iterator before_begin() const 
+	iterator before_begin() const
 	{
 		auto proNode = std::make_shared<node>(head);
 		return iterator(proNode);
@@ -79,7 +82,6 @@ public:
 			pop_front();
 
 		head = tail = nullptr;
-		// head.reset(), tail.reset();
 	}
 
 	std::size_t size() const
@@ -108,17 +110,20 @@ public:
 			throw std::out_of_range("empty list");
 	}
 
-	void push_back(const T& e)
+	void push_back(const T& e) { emplace_back(e); }
+	void push_front(const T& e)	{ emplace_front(e);	}
+
+	template<typename ...Args>
+	void emplace_front(Args&&... args)
 	{
-		auto newNode{ std::make_shared<node>(e) };
+		auto newNode = std::make_shared<node>(std::forward<Args>(args)...);
 
-		if (!head)
-			head = newNode;
+		if (!tail)
+			tail = newNode;
 
-		if (tail)
-			tail->next = newNode;
+		newNode->next = head;
 
-		tail = newNode;
+		head = newNode;
 	}
 
 	template<typename ...Args>
@@ -135,42 +140,17 @@ public:
 		tail = newNode;
 	}
 
-	void push_front(const T& e)
-	{
-		auto newNode{ std::make_shared<node>(e) };
-
-		if (!tail)
-			tail = newNode;
-
-		newNode->next = head;
-
-		head = newNode;
-	}
-
-	template<typename ...Args>
-	void emplace_front(Args&&... args)
-	{
-		auto newNode = std::make_shared<node>(std::forward<Args>(args)...);
-
-		if (!tail)
-			tail = newNode;
-
-		newNode->next = head;
-
-		head = newNode;
-	}
-
 	void pop_front()
 	{
 		if (empty())
 			return;
 
 		if (tail == head)
-			tail.reset();
+			tail.~shared_ptr();
 
 		auto temp = head;
 		head = std::move(head->next);
-		temp.reset();
+		temp.~shared_ptr(); 
 	}
 
 	bool find(T d)
@@ -214,12 +194,12 @@ public:
 		if (it.getNext() == head)
 			head = it.getNext()->next;
 		else
-			it.setNext(tmp->next);
-		
+			it.setNext(it.getNext()->next);
+
 		if (it.getNext() == tail)
 			tail = it.pnode;
 
-		tmp.reset();
+		tmp.~shared_ptr();
 
 		return it;
 	}
@@ -249,7 +229,7 @@ public:
 			tail = prev;
 
 		prev->next = current->next;
-		current.reset();
+		current.~shared_ptr();
 
 		return true;
 	}
@@ -290,9 +270,10 @@ public:
 
 	friend std::ostream& operator<< (std::ostream& os, const list<T>& list)
 	{
-		for (const auto e : list)
-			os << e;
+		for (iterator n = list.begin(); n != list.end(); n++)
+			os << *n;
 		return os << std::endl;
 	}
 };
 #endif
+
