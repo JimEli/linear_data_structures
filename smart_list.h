@@ -13,8 +13,8 @@ private:
 	{
 		template <typename T> friend class list;
 		explicit node(T e) : element(e) { }
-		explicit node(std::shared_ptr<node> n) { next = n; }
-		node(T e, std::shared_ptr<node> n) : element(e) { next = n; }
+		explicit node(std::shared_ptr<node> n) : next(n) { }
+		node(T e, std::shared_ptr<node> n) : element(e), next(n) { }
 		~node() { ~T(); next = nullptr; }
 
 	protected:
