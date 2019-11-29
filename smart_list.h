@@ -12,8 +12,9 @@ private:
 	struct node
 	{
 		template <typename T> friend class list;
-		node(T e) : element(e) { }
-		node(std::shared_ptr<node> n) { next = n; }
+		explicit node(T e) : element(e) { }
+		explicit node(std::shared_ptr<node> n) { next = n; }
+		node(T e, std::shared_ptr<node> n) : element(e) { next = n; }
 		~node() { ~T(); next = nullptr; }
 
 	protected:
@@ -110,18 +111,13 @@ public:
 			throw std::out_of_range("empty list");
 	}
 
-	void push_back(const T& e) { emplace_back(e); }
-	void push_front(const T& e)	{ emplace_front(e);	}
-
 	template<typename ...Args>
 	void emplace_front(Args&&... args)
 	{
-		auto newNode = std::make_shared<node>(std::forward<Args>(args)...);
+		auto newNode = std::make_shared<node>(std::forward<Args>(args)..., head);
 
 		if (!tail)
 			tail = newNode;
-
-		newNode->next = head;
 
 		head = newNode;
 	}
@@ -129,7 +125,7 @@ public:
 	template<typename ...Args>
 	void emplace_back(Args&&... args)
 	{
-		auto newNode = std::make_shared<node>(std::forward<Args>(args)...);
+		auto newNode = std::make_shared<node>(std::forward<Args>(args)..., nullptr);
 
 		if (!head)
 			head = newNode;
@@ -140,17 +136,20 @@ public:
 		tail = newNode;
 	}
 
+	void push_back(const T& e) { emplace_back(e); }
+	void push_front(const T& e)	{ emplace_front(e);	}
+
 	void pop_front()
 	{
 		if (empty())
 			return;
 
 		if (tail == head)
-			tail.~shared_ptr();
+			tail = nullptr; //tail.~shared_ptr();
 
 		auto temp = head;
 		head = std::move(head->next);
-		temp.~shared_ptr(); 
+		temp = nullptr; //temp.~shared_ptr();
 	}
 
 	bool find(T d)
@@ -170,8 +169,7 @@ public:
 
 	iterator insert_after(iterator it, const T& e) noexcept
 	{
-		auto newNode{ std::make_shared<node>(e) };
-		newNode->next = it.getNext();
+		auto newNode{ std::make_shared<node>(e, it.getNext()) };
 
 		if (it.getNext() == head)
 			head = newNode;
@@ -199,7 +197,7 @@ public:
 		if (it.getNext() == tail)
 			tail = it.pnode;
 
-		tmp.~shared_ptr();
+		tmp = nullptr; //tmp.~shared_ptr();
 
 		return it;
 	}
@@ -209,27 +207,27 @@ public:
 		if (empty())
 			return false;
 
-		auto current{ head }, prev{ head };
+		auto cur = std::make_shared<node>(head);
+		auto prv = std::make_shared<node>(head);
 
-		while (current)
+		while (cur)
 		{
-			if (current->element == e)
+			if (cur->element == e)
 				break;
-			prev = current;
-			current = current->next;
+			prv = cur;
+			cur = cur->next;
 		}
 
-		if (current == nullptr)
+		if (cur == nullptr)
 			return false;
 
-		if (head == current)
-			head = current->next;
+		if (head == cur)
+			head = cur->next;
 
-		if (tail == current)
-			tail = prev;
+		if (tail == cur)
+			tail = prv;
 
-		prev->next = current->next;
-		current.~shared_ptr();
+		prv->next = cur->next; //cur.~shared_ptr();
 
 		return true;
 	}
@@ -239,9 +237,9 @@ public:
 		if (empty() || !head->next)
 			return;
 
-		std::shared_ptr<node> prv = nullptr;
-		std::shared_ptr<node> cur = head;
-		std::shared_ptr<node> nxt = nullptr;
+		auto cur = std::make_shared<node>(head);
+		std::shared_ptr<node> prv;
+		std::shared_ptr<node> nxt;
 
 		while (cur)
 		{
@@ -275,5 +273,5 @@ public:
 		return os << std::endl;
 	}
 };
-#endif
 
+#endif
