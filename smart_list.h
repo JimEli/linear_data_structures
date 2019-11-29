@@ -137,7 +137,7 @@ public:
 	}
 
 	void push_back(const T& e) { emplace_back(e); }
-	void push_front(const T& e)	{ emplace_front(e);	}
+	void push_front(const T& e) { emplace_front(e); }
 
 	void pop_front()
 	{
