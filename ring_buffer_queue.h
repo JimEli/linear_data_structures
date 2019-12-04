@@ -1,5 +1,5 @@
-#ifndef _QUEUE_H_
-#define _QUEUE_H_
+#ifndef _dataH_
+#define _dataH_
 
 #include <algorithm>
 #include <memory>
@@ -21,28 +21,24 @@ class queue
 public:
 	// Ctor.
 	queue() = default;
-	explicit queue(size_t size) : queue_(allocator_.allocate(size)), maxSize_(size) { }
+	explicit queue(size_t size) : data(alloc.allocate(size)), maxSize(size) { }
 		
 	// Copy ctor.
 	queue(queue const& q) : 
-		allocator_(q.allocator_), queue_(allocator_.allocate(q.maxSize_)), front_(q.front_), back_(q.back_), maxSize_(q.maxSize_)
+		alloc(q.alloc), data(alloc.allocate(q.maxSize)), head(q.head), tail(q.tail), maxSize(q.maxSize)
 	{
-		std::uninitialized_copy(q.queue_, q.queue_ + q.maxSize_, queue_);
+		std::uninitialized_copy(q.data, q.data + q.maxSize, data);
 	}
 
 	// init_list ctor.
 	queue(std::initializer_list<T> const& s) : 
-		queue_(allocator_.allocate(s.size() + 1)), back_(s.size()), maxSize_(s.size() + 1)
+		data(alloc.allocate(s.size() + 1)), tail(s.size()), maxSize(s.size() + 1)
 	{
-		std::uninitialized_copy(s.begin(), s.end(), queue_);
+		std::uninitialized_copy(s.begin(), s.end(), data);
 	}
 
 	// Move ctor.
-	queue(queue&& q) : 
-		queue_(q.queue_), front_(q.front_), back_(q.back_), maxSize_(q.maxSize_)
-	{
-		q.queue_ = nullptr;
-	}
+	queue(queue&& q) : data(q.data), head(q.head), tail(q.tail), maxSize(q.maxSize)	{ q.data = nullptr;	}
 
 	// Copy assignment.
 	queue& operator=(queue const& q)
@@ -55,43 +51,43 @@ public:
 	// Move assignment.
 	queue& operator=(queue&& q)
 	{
-		std::swap(queue_, q.queue_);
-		std::swap(front_, q.front_);
-		std::swap(back_, q.back_);
-		std::swap(maxSize_, q.maxSize_);
+		std::swap(data, q.data);
+		std::swap(head, q.head);
+		std::swap(tail, q.tail);
+		std::swap(maxSize, q.maxSize);
 		return *this;
 	}
 
-	~queue() { allocator_.deallocate(queue_, maxSize_); }
+	~queue() { alloc.deallocate(data, maxSize); }
 
 	// Iterator.
 	class iterator : public std::iterator<std::forward_iterator_tag, queue<T>>
 	{
 	public:
 		iterator(T* queue, size_t index = 0, size_t maxSize = 0) : 
-			queue_(queue), current_(&queue[index]), index_(index), maxSize_(maxSize) { }
+			data(queue), current_(&queue[index]), index_(index), maxSize(maxSize) { }
 
 		iterator& operator++ ()
 		{
-			index_ = increment(index_, maxSize_);
-			current_ = &queue_[index_];
+			index_ = increment(index_, maxSize);
+			current_ = &data[index_];
 			return *this;
 		}
 
 		iterator operator++ (int)
 		{
 			auto pre = *this;
-			index_ = increment(index_, maxSize_);
-			current_ = &queue_[index_];
+			index_ = increment(index_, maxSize);
+			current_ = &data[index_];
 			return pre;
 		}
 
 		iterator& operator= (iterator const& rhs)
 		{
-			queue_ = rhs.queue_;
+			data = rhs.data;
 			current_ = rhs.current_;
 			index_ = rhs.index_;
-			maxSize_ = rhs.maxSize_;
+			maxSize = rhs.maxSize;
 			return *this;
 		}
 		iterator& operator= (T const& rhs) { *current_ = rhs; return *this; }
@@ -103,14 +99,14 @@ public:
 		bool operator!= (iterator const& rhs) const { return current_ != rhs.current_; }
 
 	private:
-		T* queue_;
+		T* data;
 		T* current_;
 		size_t index_;
-		size_t maxSize_;
+		size_t maxSize;
 	};
 
-	iterator begin() const { return iterator(queue_, front_, maxSize_); }
-	iterator end() const { return iterator(queue_ + back_); }
+	iterator begin() const { return iterator(data, head, maxSize); }
+	iterator end() const { return iterator(data + tail); }
 
 	iterator find(T const& t) const
 	{
@@ -122,51 +118,51 @@ public:
 
 	void resize(size_t newSize)
 	{
-		auto newQueue = allocator_.allocate(newSize + 1);
+		auto newQueue = alloc.allocate(newSize + 1);
 		auto elemSize = std::min(newSize, size());
 
 		if (elemSize > 0)
 		{
 			// Linear copy front --> elem_size.
-			if (front_ < back_)
-				std::uninitialized_copy(queue_ + front_, queue_ + elemSize, newQueue);
-			// Split up, need to copy front --> end_of_elems, then 0 --> back_.
+			if (head < tail)
+				std::uninitialized_copy(data + head, data + elemSize, newQueue);
+			// Split up, need to copy front --> end_of_elems, then 0 --> tail.
 			else
 			{
-				size_t frontHalf = maxSize_ - front_;
-				size_t backHalf = back_ - 1;
+				size_t frontHalf = maxSize - head;
+				size_t backHalf = tail - 1;
 
 				// Shinking, only need to copy up to elem_size (not past).
 				if (elemSize < backHalf)
 					backHalf = elemSize;
 
-				std::uninitialized_copy_n(queue_ + front_, frontHalf, newQueue);
-				std::uninitialized_copy_n(queue_, backHalf, newQueue + frontHalf);
+				std::uninitialized_copy_n(data + head, frontHalf, newQueue);
+				std::uninitialized_copy_n(data, backHalf, newQueue + frontHalf);
 			}
 		}
 
-		allocator_.deallocate(queue_, maxSize_);
+		alloc.deallocate(data, maxSize);
 
-		back_ = elemSize;
-		front_ = 0;
-		maxSize_ = newSize + 1;
-		queue_ = newQueue;
+		tail = elemSize;
+		head = 0;
+		maxSize = newSize + 1;
+		data = newQueue;
 	}
 
 	void enqueue(T const& value)
 	{
-		if (size() + 1 >= maxSize_)
-			resize(maxSize_ * DEFAULT_INCREASE_SIZE);
-		allocator_.construct(&queue_[back_], value);
-		back_ = increment(back_, maxSize_);
+		if (size() + 1 >= maxSize)
+			resize(maxSize * DEFAULT_INCREASE_SIZE);
+		alloc.construct(&data[tail], value);
+		tail = increment(tail, maxSize);
 	}
 
 	void enqueue(T const&& value)
 	{
-		if (size() + 1 >= maxSize_)
-			resize(maxSize_ * DEFAULT_INCREASE_SIZE);
-		allocator_.construct(&queue_[back_], std::move(value));
-		back_ = increment(back_, maxSize_);
+		if (size() + 1 >= maxSize)
+			resize(maxSize * DEFAULT_INCREASE_SIZE);
+		alloc.construct(&data[tail], std::move(value));
+		tail = increment(tail, maxSize);
 	}
 
 	T dequeue()
@@ -174,8 +170,8 @@ public:
 		if (size() <= 0)
 			throw std::out_of_range("Queue is empty, no elements left.");
 
-		auto elem = std::move(queue_[front_]);
-		front_ = increment(front_, maxSize_);
+		auto elem = std::move(data[head]);
+		head = increment(head, maxSize);
 		return elem;
 	}
 
@@ -183,22 +179,22 @@ public:
 
 	size_t size() const
 	{
-		if (front_ > back_)
+		if (head > tail)
 		{
-			if (maxSize_ > 0)
-				return (maxSize_ - (front_ - back_)) % maxSize_;
+			if (maxSize > 0)
+				return (maxSize - (head - tail)) % maxSize;
 		}
 		else
-			return back_ - front_;
+			return tail - head;
 		return 0;
 	}
 
 private:
-	std::allocator<T> allocator_;
-	T* queue_{ allocator_.allocate(DEFAULT_MAX_SIZE) };
-	size_t front_{ 0 };
-	size_t back_{ 0 };
-	size_t maxSize_{ DEFAULT_MAX_SIZE };
+	std::allocator<T> alloc;
+	T* data{ alloc.allocate(DEFAULT_MAX_SIZE) };
+	size_t head{ 0 };
+	size_t tail{ 0 };
+	size_t maxSize{ DEFAULT_MAX_SIZE };
 };
 
 #endif 
