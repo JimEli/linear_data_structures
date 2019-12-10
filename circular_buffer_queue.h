@@ -1,97 +1,207 @@
-/*************************************************************************
-* Title: Queue
-* File: queue.h
-* Author: James Eli
-* Date: 10/26/2018
-*
-* Basic queue implemented as static circular buffer using a smart pointer.
-*
-* Notes:
-*  (1) Circular buffer concepts researched at Chapter 7. Boost.Circular
-*      Buffer located here:
-*      https://www.boost.org/doc/libs/1_61_0/doc/html/circular_buffer.html
-*  (2) Queue (circular buffer) size is fixed at compile time by QUEUE_SIZE
-*      constant.
-*  (3) Note: when queue (circular buffer) is full, further calls to enqueue
-*      are ignored. Many circular buffers continue by overwritting data.
-*  (4) Compiled/tested with MS Visual Studio 2017 Community (v141), and
-*      Windows SDK version 10.0.17134.0 (32 & 64-bit), and with Eclipse
-*      Oxygen.3a Release (4.7.3a), using CDT 9.4.3/MinGw32 gcc-g++ (6.3.0-1).
-*************************************************************************
-* Change Log:
-*  10/21/2018: Initial release. JME
-*  10/26/2018: Added size template parameter.  JME
-*  10/26/2018: Added smart pointer.  JME
-*************************************************************************/
-#ifndef _QUEUE_H_
-#define _QUEUE_H_
+#ifndef CIRCULAR_BUFFER_H
+#define CIRCULAR_BUFFER_H
 
-#include <exception> // out of range
-#include <memory>    // smart pointer
+#include <algorithm>
+#include <cassert>
+#include <stdexcept>
 
-// Default size of queue array if not specified during instantiation.
-constexpr std::size_t DEFAULT_QUEUE_SIZE = 16;
+//#define INCLUDE_ITERATOR
 
-template<class T, std::size_t QUEUE_SIZE = DEFAULT_QUEUE_SIZE>
-class queue
+template <typename T, typename A = std::allocator<T>>
+class circularBuffer
 {
-private:
-	std::unique_ptr<T[]> data; // Array of queue elements.
-	size_t head;               // Elements popped from this array index.
-	size_t tail;               // Elements pushed to this array index.
-	bool full;                 // True if queue array is full.
-
 public:
-	queue() : head(0), tail(0), full(false) { data = std::make_unique<T[]>(QUEUE_SIZE); }
-	~queue() = default;
+	typedef T value_type;
+	typedef A allocator_type;
+	typedef typename allocator_type::size_type size_type;
+	typedef typename allocator_type::difference_type difference_type;
+	typedef typename allocator_type::reference reference;
+	typedef typename allocator_type::const_reference const_reference;
+	typedef typename allocator_type::pointer pointer;
+	typedef typename allocator_type::const_pointer const_pointer;
+	class iterator;
 
-	bool enqueue(T val)
+	explicit inline circularBuffer(size_type capacity, const allocator_type& allocator = allocator_type())
+		: capacity_(capacity), allocator_(allocator), buffer_(allocator_.allocate(capacity)), head_(0), tail_(buffer_)
 	{
-		if (full)                       // Check if queue full.
+		assert(capacity > 0);
+	}
+
+
+	inline ~circularBuffer()
+	{
+		clear(); // deallocates all objects
+		allocator_.deallocate(buffer_, capacity_);
+	}
+
+	inline typename allocator_type getAllocator() const { return allocator_; }
+
+	inline typename size_type capacity() const { return capacity_; }
+	inline bool empty() const { return !head_; }
+	inline typename size_type size() const { return !head_ ? 0 : (tail_ > head_ ? tail_ : tail_ + capacity_) - head_; }
+	inline typename size_type max_size() const { return allocator_.max_size(); }
+
+	inline bool push_back(const value_type& value)
+	{
+		if (head_ && head_ == tail_)
+			allocator_.destroy(tail_);
+
+		allocator_.construct(tail_, value);
+
+		value_type* const next = wrap(tail_ + 1);
+		if (!head_)
+		{
+			// first entry in the buffer
+			head_ = tail_;
+			tail_ = next;
+			return true;
+	}
+		else if (head_ == tail_)
+		{
+			// buffer is full already, throw something away
+			head_ = tail_ = next;
 			return false;
-		data[tail] = val;               // Insert value into queue.
-		tail = (tail + 1) % QUEUE_SIZE; // Increment pointer, wrap if necessary.
-		full = (tail == head);          // Queue full?
-		return true;
-	}
-
-	bool dequeue()
-	{
-		if (empty())	                // Check if empty.
-			return false;
-		full = false;                   // Queue can not be full.
-		head = (head + 1) % QUEUE_SIZE; // Increment pointer (wrap if necessary).
-		return true;
-	}
-/*
-	// Alternative version of dequeue which throws oor exception.
-	T dequeue()
-	{
-		if (empty())
-			throw std::out_of_range("empty queue");
-		T tmp = data[head];
-		full = false;                   // Queue can not be full.
-		head = (head + 1) % QUEUE_SIZE; // Increment pointer (wrap if necessary).
-		return tmp;
-	}
-*/
-	bool empty() { return (!full && (tail == head)); }
-	bool isFull() { return full; }
-
-	T front()
-	{
-		if (empty())
-			throw std::out_of_range("empty queue");
+		}
 		else
-			return data[head];
+		{
+			tail_ = next;
+			return true;
+		}
 	}
 
-	T back()
+	inline typename reference front()
 	{
-		if (empty())
-			throw std::out_of_range("empty queue");
+		assert(head_);
+		return *head_;
+	}
+	inline typename const_reference front() const
+	{
+		assert(head_);
+		return *head_;
+	}
+
+	inline typename reference back()
+	{
+		assert(head_);
+		return *wrap(tail_ - 1);
+	}
+	inline typename const_reference back() const
+	{
+		assert(head_);
+		return *wrap(tail_ - 1);
+	}
+
+	inline void pop_front()
+	{
+		assert(head_);
+
+		allocator_.destroy(head_);
+		value_type* const next = wrap(head_ + 1);
+		if (next == tail_)
+			head_ = 0;
 		else
-			return data[(tail ? tail - 1 : QUEUE_SIZE - 1)];
+			head_ = next;
+	}
+
+	inline void clear()
+	{
+		if (head_)
+		{
+			do {
+				allocator_.destroy(head_);
+				head_ = wrap(head_ + 1);
+			} while (head_ != tail_);
+		}
+		head_ = 0;
+	}
+
+#ifdef INCLUDE_ITERATOR
+	inline typename reference operator[] (size_type n) { return *wrap(head_ + n); }
+	inline typename const_reference operator[] (size_type n) const { return *wrap(head_ + n); }
+
+	inline typename reference at(size_type n)
+	{
+		if (n >= size())
+			throw std::out_of_range("Parameter out of range");
+		return (*this)[n];
+	}
+
+	inline typename const_reference at(size_type n) const
+	{
+		if (n >= size())
+			throw std::out_of_range("Parameter out of range");
+		return (*this)[n];
+	}
+
+	class iterator : public std::iterator<std::random_access_iterator_tag, value_type, size_type, pointer, reference>
+	{
+	public:
+		typedef circularBuffer<T> parent_type;
+		typedef typename parent_type::iterator self_type;
+
+		iterator(parent_type& parent, size_type index) : parent(parent), index(index) {}
+
+		self_type& operator++()
+		{
+			++index;
+			return *this;
+		}
+		self_type operator++(int) // postincrement
+		{
+			self_type old(*this);
+			operator++();
+			return old;
+		}
+		self_type& operator--()
+		{
+			--index;
+			return *this;
+		}
+		self_type operator--(int) // postdecrement
+		{
+			self_type old(*this);
+			operator--();
+			return old;
+		}
+
+		reference operator*() { return parent[index]; }
+		pointer operator->() { return &(parent[index]); }
+
+		bool operator==(const self_type& other) const { return &parent == &other.parent && index == other.index; }
+		bool operator!=(const self_type& other) const { return !(other == *this); }
+
+	private:
+		parent_type& parent;
+		size_type index;
+	};
+
+	typename iterator begin() { return iterator(*this, 0); }
+	typename iterator end() { return iterator(*this, size()); }
+#endif
+
+private:
+	size_type capacity_;
+	allocator_type allocator_;
+	pointer buffer_;
+	pointer head_;
+	pointer tail_; // Points to next unused item.
+
+	typedef circularBuffer<T> class_type;
+
+	circularBuffer(const class_type&);
+	//class_type& operator= (const class_type&);
+
+	value_type* wrap(value_type* ptr) const
+	{
+		assert(ptr < buffer_ + capacity_ * 2);
+		assert(ptr > buffer_ - capacity_);
+		
+		if (ptr >= buffer_ + capacity_)
+			return ptr - capacity_;
+		else if (ptr < buffer_)
+			return ptr + capacity_;
+		else
+			return ptr;
 	}
 };
 
