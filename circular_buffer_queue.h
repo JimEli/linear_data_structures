@@ -8,7 +8,7 @@
 //#define INCLUDE_ITERATOR
 
 template <typename T, typename A = std::allocator<T>>
-class circularBuffer
+class queue
 {
 public:
 	typedef T value_type;
@@ -21,14 +21,14 @@ public:
 	typedef typename allocator_type::const_pointer const_pointer;
 	class iterator;
 
-	explicit inline circularBuffer(size_type capacity, const allocator_type& allocator = allocator_type())
+	explicit inline queue(size_type capacity, const allocator_type& allocator = allocator_type())
 		: capacity_(capacity), allocator_(allocator), buffer_(allocator_.allocate(capacity)), head_(0), tail_(buffer_)
 	{
 		assert(capacity > 0);
 	}
 
 
-	inline ~circularBuffer()
+	inline ~queue()
 	{
 		clear(); // deallocates all objects
 		allocator_.deallocate(buffer_, capacity_);
@@ -55,7 +55,7 @@ public:
 			head_ = tail_;
 			tail_ = next;
 			return true;
-	}
+		}
 		else if (head_ == tail_)
 		{
 			// buffer is full already, throw something away
@@ -136,7 +136,7 @@ public:
 	class iterator : public std::iterator<std::random_access_iterator_tag, value_type, size_type, pointer, reference>
 	{
 	public:
-		typedef circularBuffer<T> parent_type;
+		typedef queue<T> parent_type;
 		typedef typename parent_type::iterator self_type;
 
 		iterator(parent_type& parent, size_type index) : parent(parent), index(index) {}
@@ -184,11 +184,11 @@ private:
 	allocator_type allocator_;
 	pointer buffer_;
 	pointer head_;
-	pointer tail_; // Points to next unused item.
+	pointer tail_;
 
-	typedef circularBuffer<T> class_type;
+	typedef queue<T> class_type;
 
-	circularBuffer(const class_type&);
+	queue(const class_type&);
 	//class_type& operator= (const class_type&);
 
 	value_type* wrap(value_type* ptr) const
