@@ -190,7 +190,7 @@ public:
 	}
 
 private:
-	std::allocator<T> alloc;
+	Alloc alloc; //std::allocator<T> alloc;
 	T* data{ alloc.allocate(DEFAULT_MAX_SIZE) };
 	size_t head{ 0 };
 	size_t tail{ 0 };
