@@ -1,5 +1,5 @@
-#ifndef _dataH_
-#define _dataH_
+#ifndef _RING_BUFFER_H_
+#define _RING_BUFFER_H_
 
 #include <algorithm>
 #include <memory>
@@ -123,16 +123,16 @@ public:
 
 		if (elemSize > 0)
 		{
-			// Linear copy front --> elem_size.
+			// Linear copy front to elemSize.
 			if (head < tail)
 				std::uninitialized_copy(data + head, data + elemSize, newQueue);
-			// Split up, need to copy front --> end_of_elems, then 0 --> tail.
+			// Split up, need to copy front to end of elems, then 0 to tail.
 			else
 			{
 				size_t frontHalf = maxSize - head;
 				size_t backHalf = tail - 1;
 
-				// Shinking, only need to copy up to elem_size (not past).
+				// Shinking, only need to copy up to elemSize (not past).
 				if (elemSize < backHalf)
 					backHalf = elemSize;
 
