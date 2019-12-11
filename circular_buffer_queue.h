@@ -11,17 +11,7 @@ template <typename T, typename A = std::allocator<T>>
 class queue
 {
 public:
-	typedef T value_type;
-	typedef A allocator_type;
-	typedef typename allocator_type::size_type size_type;
-	typedef typename allocator_type::difference_type difference_type;
-	typedef typename allocator_type::reference reference;
-	typedef typename allocator_type::const_reference const_reference;
-	typedef typename allocator_type::pointer pointer;
-	typedef typename allocator_type::const_pointer const_pointer;
-	class iterator;
-
-	explicit queue(size_type capacity, const allocator_type& allocator = allocator_type())
+	explicit queue(size_t capacity, const A& allocator = A())
 		: capacity_(capacity), allocator_(allocator), buffer_(allocator_.allocate(capacity)), head_(0), tail_(buffer_)
 	{
 		assert(capacity > 0);
@@ -29,25 +19,25 @@ public:
 
 	~queue()
 	{
-		clear(); // deallocates all objects
+		clear();
 		allocator_.deallocate(buffer_, capacity_);
 	}
 
-	allocator_type getAllocator() const { return allocator_; }
+	A getAllocator() const { return allocator_; }
 
-	size_type capacity() const { return capacity_; }
+	size_t capacity() const { return capacity_; }
 	bool empty() const { return !head_; }
-	size_type size() const { return !head_ ? 0 : (tail_ > head_ ? tail_ : tail_ + capacity_) - head_; }
-	size_type max_size() const { return allocator_.max_size(); }
+	size_t size() const { return !head_ ? 0 : (tail_ > head_ ? tail_ : tail_ + capacity_) - head_; }
+	size_t max_size() const { return allocator_.max_size(); }
 
-	bool push_back(const value_type& value)
+	bool push_back(const T& value)
 	{
 		if (head_ && head_ == tail_)
 			allocator_.destroy(tail_);
 
 		allocator_.construct(tail_, value);
 
-		value_type* const next = wrap(tail_ + 1);
+		T* const next = wrap(tail_ + 1);
 		if (!head_)
 		{
 			// First entry in the buffer.
@@ -68,23 +58,23 @@ public:
 		}
 	}
 
-	reference front()
+	T& front()
 	{
 		assert(head_);
 		return *head_;
 	}
-	const_reference front() const
+	const T& front() const
 	{
 		assert(head_);
 		return *head_;
 	}
 
-	reference back()
+	T& back()
 	{
 		assert(head_);
 		return *wrap(tail_ - 1);
 	}
-	const_reference back() const
+	const T& back() const
 	{
 		assert(head_);
 		return *wrap(tail_ - 1);
@@ -95,7 +85,7 @@ public:
 		assert(head_);
 
 		allocator_.destroy(head_);
-		value_type* const next = wrap(head_ + 1);
+		T* const next = wrap(head_ + 1);
 		if (next == tail_)
 			head_ = 0;
 		else
@@ -115,63 +105,60 @@ public:
 	}
 
 #ifdef INCLUDE_ITERATOR
-	reference operator[] (size_type n) { return *wrap(head_ + n); }
-	const_reference operator[] (size_type n) const { return *wrap(head_ + n); }
+	T& operator[] (size_t n) { return *wrap(head_ + n); }
+	const T& operator[] (size_t n) const { return *wrap(head_ + n); }
 
-	reference at(size_type n)
+	T& at(size_t n)
 	{
 		if (n >= size())
 			throw std::out_of_range("Parameter out of range");
 		return (*this)[n];
 	}
 
-	const_reference at(size_type n) const
+	const T& at(size_t n) const
 	{
 		if (n >= size())
 			throw std::out_of_range("Parameter out of range");
 		return (*this)[n];
 	}
 
-	class iterator : public std::iterator<std::random_access_iterator_tag, value_type, size_type, pointer, reference>
+	class iterator : public std::iterator<std::random_access_iterator_tag, T, size_t, T*, T&>
 	{
 	public:
-		typedef queue<T> parent_type;
-		typedef typename parent_type::iterator self_type;
+		iterator(queue<T>& p, size_t i) : parent(p), index(i) { }
 
-		iterator(parent_type& parent, size_type index) : parent(parent), index(index) {}
-
-		self_type& operator++()
+		iterator& operator++ ()
 		{
 			++index;
 			return *this;
 		}
-		self_type operator++(int) // postincrement
+		iterator operator++ (int) // postincrement
 		{
-			self_type old(*this);
+			iterator old(*this);
 			operator++();
 			return old;
 		}
-		self_type& operator--()
+		iterator& operator-- ()
 		{
 			--index;
 			return *this;
 		}
-		self_type operator--(int) // postdecrement
+		iterator operator-- (int) // postdecrement
 		{
-			self_type old(*this);
+			iterator old(*this);
 			operator--();
 			return old;
 		}
 
-		reference operator*() { return parent[index]; }
-		pointer operator->() { return &(parent[index]); }
+		T& operator* () { return parent[index]; }
+		T* operator-> () { return &(parent[index]); }
 
-		bool operator==(const self_type& other) const { return &parent == &other.parent && index == other.index; }
-		bool operator!=(const self_type& other) const { return !(other == *this); }
+		bool operator== (const iterator& other) const { return &parent == &other.parent && index == other.index; }
+		bool operator!= (const iterator& other) const { return !(other == *this); }
 
 	private:
-		parent_type& parent;
-		size_type index;
+		queue<T>& parent;
+		size_t index;
 	};
 
 	iterator begin() { return iterator(*this, 0); }
@@ -179,18 +166,16 @@ public:
 #endif
 
 private:
-	size_type capacity_;
-	allocator_type allocator_;
-	pointer buffer_;
-	pointer head_;
-	pointer tail_;
+	size_t capacity_;
+	A allocator_;
+	T* buffer_;
+	T* head_;
+	T* tail_;
 
-	typedef queue<T> class_type;
+	queue(const queue<T>&);
+	//queue<T>& operator= (const queue<T>&);
 
-	queue(const class_type&);
-	//class_type& operator= (const class_type&);
-
-	value_type* wrap(value_type* ptr) const
+	T* wrap(T* ptr) const
 	{
 		assert(ptr < buffer_ + capacity_ * 2);
 		assert(ptr > buffer_ - capacity_);
