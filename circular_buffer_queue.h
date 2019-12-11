@@ -21,27 +21,26 @@ public:
 	typedef typename allocator_type::const_pointer const_pointer;
 	class iterator;
 
-	explicit inline queue(size_type capacity, const allocator_type& allocator = allocator_type())
+	explicit queue(size_type capacity, const allocator_type& allocator = allocator_type())
 		: capacity_(capacity), allocator_(allocator), buffer_(allocator_.allocate(capacity)), head_(0), tail_(buffer_)
 	{
 		assert(capacity > 0);
 	}
 
-
-	inline ~queue()
+	~queue()
 	{
 		clear(); // deallocates all objects
 		allocator_.deallocate(buffer_, capacity_);
 	}
 
-	inline typename allocator_type getAllocator() const { return allocator_; }
+	allocator_type getAllocator() const { return allocator_; }
 
-	inline typename size_type capacity() const { return capacity_; }
-	inline bool empty() const { return !head_; }
-	inline typename size_type size() const { return !head_ ? 0 : (tail_ > head_ ? tail_ : tail_ + capacity_) - head_; }
-	inline typename size_type max_size() const { return allocator_.max_size(); }
+	size_type capacity() const { return capacity_; }
+	bool empty() const { return !head_; }
+	size_type size() const { return !head_ ? 0 : (tail_ > head_ ? tail_ : tail_ + capacity_) - head_; }
+	size_type max_size() const { return allocator_.max_size(); }
 
-	inline bool push_back(const value_type& value)
+	bool push_back(const value_type& value)
 	{
 		if (head_ && head_ == tail_)
 			allocator_.destroy(tail_);
@@ -51,14 +50,14 @@ public:
 		value_type* const next = wrap(tail_ + 1);
 		if (!head_)
 		{
-			// first entry in the buffer
+			// First entry in the buffer.
 			head_ = tail_;
 			tail_ = next;
 			return true;
 		}
 		else if (head_ == tail_)
 		{
-			// buffer is full already, throw something away
+			// Buffer is full already, throw something away.
 			head_ = tail_ = next;
 			return false;
 		}
@@ -69,29 +68,29 @@ public:
 		}
 	}
 
-	inline typename reference front()
+	reference front()
 	{
 		assert(head_);
 		return *head_;
 	}
-	inline typename const_reference front() const
+	const_reference front() const
 	{
 		assert(head_);
 		return *head_;
 	}
 
-	inline typename reference back()
+	reference back()
 	{
 		assert(head_);
 		return *wrap(tail_ - 1);
 	}
-	inline typename const_reference back() const
+	const_reference back() const
 	{
 		assert(head_);
 		return *wrap(tail_ - 1);
 	}
 
-	inline void pop_front()
+	void pop_front()
 	{
 		assert(head_);
 
@@ -103,7 +102,7 @@ public:
 			head_ = next;
 	}
 
-	inline void clear()
+	void clear()
 	{
 		if (head_)
 		{
@@ -116,17 +115,17 @@ public:
 	}
 
 #ifdef INCLUDE_ITERATOR
-	inline typename reference operator[] (size_type n) { return *wrap(head_ + n); }
-	inline typename const_reference operator[] (size_type n) const { return *wrap(head_ + n); }
+	reference operator[] (size_type n) { return *wrap(head_ + n); }
+	const_reference operator[] (size_type n) const { return *wrap(head_ + n); }
 
-	inline typename reference at(size_type n)
+	reference at(size_type n)
 	{
 		if (n >= size())
 			throw std::out_of_range("Parameter out of range");
 		return (*this)[n];
 	}
 
-	inline typename const_reference at(size_type n) const
+	const_reference at(size_type n) const
 	{
 		if (n >= size())
 			throw std::out_of_range("Parameter out of range");
@@ -175,8 +174,8 @@ public:
 		size_type index;
 	};
 
-	typename iterator begin() { return iterator(*this, 0); }
-	typename iterator end() { return iterator(*this, size()); }
+	iterator begin() { return iterator(*this, 0); }
+	iterator end() { return iterator(*this, size()); }
 #endif
 
 private:
