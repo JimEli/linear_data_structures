@@ -1,192 +1,216 @@
-#ifndef CIRCULAR_BUFFER_H
-#define CIRCULAR_BUFFER_H
+/*************************************************************************
+* Title: FIFO circular buffer queue
+* File: queue.h
+* Author: James Eli
+* Date: 12/13/2019
+*
+* Basic circular buffer queue using fixed array. Inputs wrap around to 
+* buffer start. Output lags behind input by QUEUE_SIZE when input wraps.
+* Define "INCLUDE_ITERATOR to include iterator support.
+*
+* Notes:
+*  (1) Under C++17 front/back return std::optional<T>.
+*  (2) Compiled with MS Visual Studio 2019 Community (v142).
+*************************************************************************
+* Change Log:
+*   12/13/2019: Initial release. JME
+*************************************************************************/
+#ifndef _QUEUE_H_
+#define _QUEUE_H_
 
-#include <algorithm>
-#include <cassert>
-#include <stdexcept>
+#include <exception> // out of range.
+#include <memory>    // smart pointer.
+#include <optional>  // optional return values from front/back.
+#include <algorithm> // copy.
 
-//#define INCLUDE_ITERATOR
+#define INCLUDE_ITERATOR
 
-template <typename T, typename A = std::allocator<T>>
+// Default size of queue array if not specified during instantiation.
+constexpr std::size_t DEFAULT_QUEUE_SIZE = 16;
+
+template<class T, std::size_t QUEUE_SIZE = DEFAULT_QUEUE_SIZE>
 class queue
 {
+private:
+	std::unique_ptr<T[]> data; // Array of elements.
+	size_t output;             // Elements are popped from this array index.
+	size_t input;              // Elements are pushed to this array index.
+	bool empty_;               // True if queue is empty.
+
+	// Increment and wrap array index.
+	static void increment(size_t& index) { index = (index + 1) % (QUEUE_SIZE + 1); }
+
 public:
-	explicit queue(size_t capacity, const A& allocator = A())
-		: capacity_(capacity), allocator_(allocator), buffer_(allocator_.allocate(capacity)), head_(0), tail_(buffer_)
+	using iterator_category = std::forward_iterator_tag;
+	using value_type = T;
+	using difference_type = std::ptrdiff_t;
+	using pointer = T*;
+	using reference = T&;
+
+	queue() : output(0), input(0), empty_(true) { data = std::make_unique<T[]>(QUEUE_SIZE); }
+	// Copy ctor.
+	queue(const queue<T, QUEUE_SIZE>& q) noexcept : input(q.input), output(q.output), empty_(q.empty_)
 	{
-		assert(capacity > 0);
+		data = std::make_unique<T[]>(q.max_size());
+		std::copy(q.begin(), q.end(), data.get());
+	}
+	// Move ctor.
+	queue(queue<T, QUEUE_SIZE>&& q)	noexcept : input(q.input), output(q.output), empty_(q.empty_)
+	{
+		data = std::make_unique<T[]>(q.max_size());
+		std::copy(q.begin(), q.end(), data.get());
+		q.data = nullptr;
+		q.empty_ = true;
+	}
+	// Copy assignment.
+	queue<T, QUEUE_SIZE>& operator= (queue<T, QUEUE_SIZE> const& q) noexcept
+	{
+		output = q.output;
+		input = q.input;
+		empty_ = q.empty_;
+		data = std::make_unique<T[]>(q.max_size());
+		std::copy(q.begin(), q.end(), data.get());
+
+		return *this;
+	}
+	// Move assignment.
+	queue<T, QUEUE_SIZE>& operator= (queue<T, QUEUE_SIZE>&& q) noexcept
+	{
+		if (this != &q)
+		{
+			data = std::make_unique<T[]>(q.max_size());
+
+			std::swap(data, q.data);
+			std::swap(input, q.input);
+			std::swap(output, q.output);
+			std::swap(empty_, q.empty_);
+
+			q.data = nullptr;
+			q.empty_ = true;
+		}
+		return *this;
 	}
 
-	~queue()
+	~queue() = default;
+
+	void enqueue(T value)
 	{
-		clear();
-		allocator_.deallocate(buffer_, capacity_);
+		data[input] = value;
+		increment(input);
+		if (!empty_ && output == input)
+			increment(output);
+		empty_ = false;
 	}
 
-	A getAllocator() const { return allocator_; }
-
-	size_t capacity() const { return capacity_; }
-	bool empty() const { return !head_; }
-	size_t size() const { return !head_ ? 0 : (tail_ > head_ ? tail_ : tail_ + capacity_) - head_; }
-	size_t max_size() const { return allocator_.max_size(); }
-
-	bool push_back(const T& value)
+	void dequeue()
 	{
-		if (head_ && head_ == tail_)
-			allocator_.destroy(tail_);
+		if (empty_)
+			return;
+		increment(output);
+		if (output == input)
+			empty_ = true;
+	}
 
-		allocator_.construct(tail_, value);
-
-		T* const next = wrap(tail_ + 1);
-		if (!head_)
-		{
-			// First entry in the buffer.
-			head_ = tail_;
-			tail_ = next;
-			return true;
-		}
-		else if (head_ == tail_)
-		{
-			// Buffer is full already, throw something away.
-			head_ = tail_ = next;
-			return false;
-		}
+	bool empty() const { return empty_; }
+	size_t capacity() const { return max_size() - size(); }
+	size_t max_size() const { return QUEUE_SIZE; }
+	size_t size() const
+	{
+		if (input < output)
+			return input + QUEUE_SIZE - output;
 		else
-		{
-			tail_ = next;
-			return true;
-		}
+			return input - output;
 	}
 
-	T& front()
+// /Zc:__cplusplus
+#if (__cplusplus >= 201703L) 
+	std::optional<T> front() const
 	{
-		assert(head_);
-		return *head_;
-	}
-	const T& front() const
-	{
-		assert(head_);
-		return *head_;
-	}
-
-	T& back()
-	{
-		assert(head_);
-		return *wrap(tail_ - 1);
-	}
-	const T& back() const
-	{
-		assert(head_);
-		return *wrap(tail_ - 1);
-	}
-
-	void pop_front()
-	{
-		assert(head_);
-
-		allocator_.destroy(head_);
-		T* const next = wrap(head_ + 1);
-		if (next == tail_)
-			head_ = 0;
+		if (!empty_)
+			return data[output];
 		else
-			head_ = next;
+			return std::nullopt;
 	}
 
-	void clear()
+	std::optional<T> back() const
 	{
-		if (head_)
-		{
-			do {
-				allocator_.destroy(head_);
-				head_ = wrap(head_ + 1);
-			} while (head_ != tail_);
-		}
-		head_ = 0;
+		if (!empty_)
+			return data[input];
+		else
+			return std::nullopt;
 	}
+
+#else
+	value_type front() const
+	{
+		if (empty_)
+			throw std::out_of_range("empty queue");
+		else
+			return data[output];
+	}
+
+	value_type back() const
+	{
+		if (empty_)
+			throw std::out_of_range("empty queue");
+		else
+			return data[input];
+	}
+#endif
 
 #ifdef INCLUDE_ITERATOR
-	T& operator[] (size_t n) { return *wrap(head_ + n); }
-	const T& operator[] (size_t n) const { return *wrap(head_ + n); }
-
-	T& at(size_t n)
-	{
-		if (n >= size())
-			throw std::out_of_range("Parameter out of range");
-		return (*this)[n];
-	}
-
-	const T& at(size_t n) const
-	{
-		if (n >= size())
-			throw std::out_of_range("Parameter out of range");
-		return (*this)[n];
-	}
-
-	class iterator : public std::iterator<std::random_access_iterator_tag, T, size_t, T*, T&>
+	class iterator : public std::iterator<std::forward_iterator_tag, queue<T, QUEUE_SIZE>>
 	{
 	public:
-		iterator(queue<T>& p, size_t i) : parent(p), index(i) { }
+		iterator(T* queue, size_t index = 0, size_t max_size = 0) 
+			: queue_(queue), current_(&queue[index]), index_(index), max_size_(max_size) { }
 
 		iterator& operator++ ()
 		{
-			++index;
+			index_ = increment(index_, max_size_);
+			current_ = &queue_[index_];
 			return *this;
 		}
-		iterator operator++ (int) // postincrement
+
+		iterator operator++ (int)
 		{
-			iterator old(*this);
-			operator++();
-			return old;
+			auto pre = *this;
+
+			index_ = increment(index_, max_size_);
+			current_ = &queue_[index_];
+			return pre;
 		}
-		iterator& operator-- ()
+
+		iterator& operator= (iterator const& rhs)
 		{
-			--index;
+			queue_ = rhs.queue_;
+			current_ = rhs.current_;
+			index_ = rhs.index_;
+			max_size_ = rhs.max_size_;
 			return *this;
 		}
-		iterator operator-- (int) // postdecrement
-		{
-			iterator old(*this);
-			operator--();
-			return old;
+
+		iterator& operator= (T const& rhs) 
+		{ 
+			*current_ = rhs; 
+			return *this; 
 		}
 
-		T& operator* () { return parent[index]; }
-		T* operator-> () { return &(parent[index]); }
+		reference operator* () const { return *current_; }
+		pointer operator-> () const { return current_; }
 
-		bool operator== (const iterator& other) const { return &parent == &other.parent && index == other.index; }
-		bool operator!= (const iterator& other) const { return !(other == *this); }
+		bool operator== (iterator const& rhs)const { return current_ == rhs.current_; }
+		bool operator!= (iterator const& rhs) const { return current_ != rhs.current_; }
 
 	private:
-		queue<T>& parent;
-		size_t index;
+		pointer queue_;
+		pointer current_;
+		size_t index_;
+		size_t max_size_;
 	};
-
-	iterator begin() { return iterator(*this, 0); }
-	iterator end() { return iterator(*this, size()); }
 #endif
 
-private:
-	size_t capacity_;
-	A allocator_;
-	T* buffer_;
-	T* head_;
-	T* tail_;
-
-	queue(const queue<T>&);
-	//queue<T>& operator= (const queue<T>&);
-
-	T* wrap(T* ptr) const
-	{
-		assert(ptr < buffer_ + capacity_ * 2);
-		assert(ptr > buffer_ - capacity_);
-		
-		if (ptr >= buffer_ + capacity_)
-			return ptr - capacity_;
-		else if (ptr < buffer_)
-			return ptr + capacity_;
-		else
-			return ptr;
-	}
+	pointer begin() const { return data.get(); }
+	pointer end() const { return (data.get() + size()); }
 };
-
 #endif
