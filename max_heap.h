@@ -25,7 +25,8 @@ private:
 		if (right < size() && array[right] > array[largest])
 			largest = right;
 		// swap with child having greater value & call heapify-down on the child
-		if (largest != i) {
+		if (largest != i) 
+		{
 			std::swap(array[i], array[largest]);
 			heapifyDown(largest);
 		}
@@ -57,7 +58,8 @@ public:
 
 	void pop() 
 	{
-		try {
+		try 
+		{
 			// If heap has no elements, throw an exception.
 			if (size() == 0)
 				throw std::out_of_range("index out of range (Heap underflow)");
@@ -73,7 +75,8 @@ public:
 
 	T peek() 
 	{
-		try {
+		try 
+		{
 			// if heap has no elements, throw an exception
 			if (size() == 0)
 				throw std::out_of_range("index out of range (Heap underflow)");
