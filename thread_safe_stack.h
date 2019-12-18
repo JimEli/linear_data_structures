@@ -1,3 +1,4 @@
+// Adapted from "C++ Concurrency in Action" listing 3.5
 #ifndef _STACK_H_
 #define _STACK_H_
 
