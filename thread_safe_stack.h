@@ -41,16 +41,6 @@ public:
 		head = head->next;
 		return e;
 	}
-	
-	void pop(std::optional<T>& value)
-	{
-		const std::lock_guard<std::mutex> lock(stackMutex);
-		if (empty())
-			value = std::nullopt;
-		else
-			value = head->element;
-		head = head->next;
-	}
 /*
 	std::shared_ptr<T> pop()
 	{
