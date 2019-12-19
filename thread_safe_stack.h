@@ -6,6 +6,8 @@
 #include <optional>  // optional
 #include <mutex>     // mutex, lock_guard
 
+//struct empty_stack : std::exception { const char* what() const throw() { return "empty stack"; } };
+
 template <typename T>
 class stack
 {
@@ -28,14 +30,14 @@ public:
 	{
 		auto newNode{ std::make_shared<node<T>>(e) };
 		newNode->element = e;
-		const std::lock_guard<std::mutex> lock(stackMutex);
+		const std::lock_guard<std::mutex> lock(sm);
 		newNode->next = head;
 		head = newNode;
 	}
 
 	std::optional<T> pop()
 	{
-		const std::lock_guard<std::mutex> lock(stackMutex);
+		const std::lock_guard<std::mutex> lock(sm);
 		if (empty())
 			return std::nullopt;
 		auto e = head->element;
@@ -45,9 +47,9 @@ public:
 /*
 	std::shared_ptr<T> pop()
 	{
-		std::lock_guard<std::mutex> lock(stackMutex);
+		std::lock_guard<std::mutex> lock(sm);
 		if (empty())
-			return nullptr;
+			throw empty_stack();
 		std::shared_ptr<T> const value(std::make_shared<T>(head->element));
 		head = head->next;
 		return value;
@@ -67,13 +69,14 @@ public:
 	std::size_t size() const
 	{
 		std::size_t size = 0;
-		const std::lock_guard<std::mutex> lock(stackMutex);
+		const std::lock_guard<std::mutex> lock(sm);
 		for (auto node = head; node; node = node->next, size++);
 		return size;
 	}
 
 	friend std::ostream& operator<< (std::ostream& os, const stack<T>& s)
 	{
+		const std::lock_guard<std::mutex> lock(s.sm);
 		for (auto n = s.head; n; n = n->next)
 			os << n->element;
 		return os << std::endl;
@@ -81,7 +84,7 @@ public:
 
 private:
 	std::shared_ptr<node<T>> head = nullptr;
-	mutable std::mutex stackMutex;
+	mutable std::mutex sm;
 };
 
 #endif
