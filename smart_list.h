@@ -149,7 +149,7 @@ public:
 
 		auto temp = head;
 		head = std::move(head->next);
-		temp = nullptr; //temp.~shared_ptr();
+		temp.reset();
 	}
 
 	bool find(T d)
@@ -197,12 +197,12 @@ public:
 		if (it.getNext() == tail)
 			tail = it.pnode;
 
-		tmp = nullptr; //tmp.~shared_ptr();
+		tmp.reset();
 
 		return it;
 	}
 
-	bool remove(T e) 
+	bool remove(T e)
 	{
 		if (empty())
 			return false;
@@ -227,7 +227,8 @@ public:
 		if (tail == cur)
 			tail = prv;
 
-		prv->next = cur->next; //cur.~shared_ptr();
+		prv->next = cur->next; 
+		cur.reset();
 
 		return true;
 	}
