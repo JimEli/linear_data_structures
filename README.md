@@ -6,9 +6,11 @@ A collection of lean and mean header only include files with minimal commenting 
 * vector
 * singly-linked-list (using raw pointers)
 * singly-linked-list (using smart pointers)
-* stack
-* queue
+* doubly-linked-list
+* stack(s)
+* queue(s)
 * min heap
+* max heap
 * binary heap (priority queue)
 * priority queue
 
