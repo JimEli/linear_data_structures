@@ -9,10 +9,11 @@ A collection of lean and mean header only include files with minimal commenting 
 * doubly-linked-list
 * stack(s)
 * queue(s)
+* priority queue
+* circular buffer (queue)
+* binary heap (priority queue)
 * min heap
 * max heap
-* binary heap (priority queue)
-* priority queue
 
 ## Basic Feature Descriptions
 
