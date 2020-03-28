@@ -38,9 +38,12 @@ public:
 	{
 		if (empty())
 			throw std::out_of_range("stack empty");
+		
 		T e = top();
 		auto temp{ head };
 		head = head->next;
+		temp.reset();
+		
 		return e;
 	}
 
