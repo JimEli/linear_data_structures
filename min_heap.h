@@ -1,110 +1,99 @@
 // Min heap. Requires that type T has a function operator< defined.
-#ifndef _MIN_HEAP_H_
-#define _MIN_HEAP_H_
+#include <memory>
+#include <algorithm>
 
 template <typename T>
-class MinHeap
+class min_heap 
 {
-	T* data;
-	std::size_t length;
-	std::size_t capacity;
-	static constexpr std::size_t INIT_SIZE{ 1 };
+	std::unique_ptr<T[]> data;
+	std::size_t arrayUsed, arraySize;
+	static constexpr std::size_t INITIAL_SIZE = 2;
 
 	void resize(std::size_t newSize)
 	{
-		T* newData = new T[newSize];
+		std::unique_ptr<T[]> temp = std::make_unique<T[]>(sizeof(T)*arraySize);
+		std::copy(data.get(), data.get() + arraySize, temp.get());
 
-		for (std::size_t i = 0; i < length; ++i)
-			newData[i] = data[i];
+		data.reset(new T[newSize]);
 
-		delete[] data;
+		std::copy(temp.get(), temp.get() + std::min(arraySize, newSize), data.get());
 
-		data = newData;
-		capacity = newSize;
+		temp.reset();
+		arraySize = newSize;
 	}
 
 public:
-	MinHeap() : data(nullptr), length(0), capacity(INIT_SIZE) { data = new T[INIT_SIZE]; }
-
-	~MinHeap()
-	{
-		delete[] data;
-		data = nullptr;
-	}
-
-	void push(const T& element)
+	min_heap() : arrayUsed(0), arraySize(INITIAL_SIZE) { data.reset(new T[INITIAL_SIZE]); }
+	~min_heap() { data.reset(); }
+	
+	void push(const T& element) 
 	{
 		std::size_t i;
 
-		if (length >= capacity)
-			resize(capacity * 2);
+		if (arrayUsed >= arraySize) 
+			resize(arraySize * 2);
 
-		for (i = length; i > 0;)
+		for (i = arrayUsed; i > 0;) 
 		{
-			std::size_t parent = (i - 1) / 2;
-			if (element < data[parent])
+			int parent = (i - 1) / 2;
+			if (element < data[parent]) 
 			{
 				data[i] = data[parent];
 				i = parent;
 			}
-			else
+			else 
 				break;
 		}
 
 		data[i] = element;
-		++length;
+		arrayUsed++;
 	}
 
-	void pop()
+	void pop() 
 	{
-		T element = data[length - 1];
+		T element = data[arrayUsed - 1];
 		std::size_t i;
 
-		if (length < capacity / 2 && capacity > INIT_SIZE)
-			resize(capacity / 2);
+		if (arrayUsed < arraySize / 2 && arraySize > INITIAL_SIZE) 
+			resize(arraySize / 2);
 
-		for (i = 0; (i * 2 + 1) < length;)
+		for (i = 0; (i * 2 + 1) < arrayUsed;) 
 		{
-			std::size_t left = i * 2 + 1;
-			std::size_t right = i * 2 + 2;
+			std::size_t left = i * 2 + 1, right = i * 2 + 2;
 
-			if (right >= length)
+			if (right >= arrayUsed) 
 			{
-				if (data[left] < element)
+				if (data[left] < element) 
 				{
 					data[i] = data[left];
 					i = left;
 				}
 				break;
 			}
-			else
+			else 
 			{
 				std::size_t child = left;
-
-				if (data[2 * i + 2] < data[2 * i + 1])
+				
+				if (data[2 * i + 2] < data[2 * i + 1]) 
 					child = right;
 
-				if (data[child] < element)
+				if (data[child] < element) 
 				{
 					data[i] = data[child];
 					i = child;
 				}
-				else
+				else 
 					break;
 			}
 		}
-
 		data[i] = element;
 
-		if (length > 0)
-			--length;
+		if (arrayUsed > 0) 
+			arrayUsed--;
 	}
 
-	T& top() { return data[0]; }
+	T top() { return data[0]; }
 
-	bool empty() { return length == 0; }
-
-	std::size_t size() { return length; }
+	bool empty() { return arrayUsed == 0; }
 };
 
-#endif
