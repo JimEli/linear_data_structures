@@ -5,10 +5,10 @@ template <class T>
 class stack : public std::vector<T>
 {
 private:
-	std::vector<T> data;
+  std::vector<T> data;
 
 public:
-	std::size_t size() { return data.size(); }
+  std::size_t size() { return data.size(); }
 
   std::size_t empty() { return data.empty(); }
 	
@@ -19,12 +19,12 @@ public:
   T pop() { T& d = data.back(); data.pop_back(); return d; }
 	
   friend std::ostream& operator<< (std::ostream& os, stack<T>& s)
-	{
-		std::size_t n = s.size();
+  {
+    std::size_t n = s.size();
     
-		while (n)
-			os << s[--n];
-		return os;
-	}
+    while (n) {
+      os << s[--n];
+      return os;
+    }
 };
 
