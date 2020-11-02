@@ -118,7 +118,8 @@ public:
 
 		if (!tail)
 			tail = newNode;
-
+		
+		newNode->next = head;
 		head = newNode;
 	}
 
